@@ -5,6 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_scss import Scss
 from flask_mail import Mail
 from celery import Celery
+import logging
+
+logging.basicConfig(format='--> %(levelname)-8s: %(message)s', level=logging.DEBUG)
 
 def make_celery(app):
     celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'],
