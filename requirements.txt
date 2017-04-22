@@ -1,0 +1,10 @@
+python-craigslist
+sqlalchemy
+flask
+flask-sqlalchemy
+flask-scss
+tqdm
+pytest
+celery
+redis
+flask_mail

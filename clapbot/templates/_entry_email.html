@@ -1,0 +1,36 @@
+<tr bgcolor='{{ listing_loop.cycle("#97D1DD", "white") }}'>
+    <td>
+        <a href='{{ listing.url }}'>{{ listing.name }}</a>
+        <p><strong>Created at</strong> {{ listing.created }} <strong>Available on</strong> {{ listing.available | default('?', true) }}</p>
+        <p><strong>Price</strong> ${{ '%.2f' | format(listing.price) }}
+        {% if listings.bedrooms or listing.bathrooms %}
+            <strong>Beds / Baths:</strong> {{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}
+        {% endif %}
+        {% if listing.size %}
+            <strong>Area:</strong> {{ '%.0f sqare ft'|format(listing.size) }}
+        {% endif %}
+        </p>
+        <p>
+            <strong>Tags:</strong>
+            {% for tag in listing.tags %}
+                {% if not loop.first %},{% endif %}
+                {{ tag.name }}
+            {% endfor %}
+        </p>
+        <p><strong>Location:</strong> {{ listing.location | truncate(120) }} 
+        {% if listing.transit_stop %}
+            <strong>{{ listing.transit_stop.agency }}:</strong> {{ listing.transit_stop.name }} | {{ '%.1f'|format(listing.transit_stop_distance) }}km
+        {% endif %}
+        </p>
+    </td>
+
+    <td>
+        <div data-featherlight-gallery data-featherlight-filter="a">
+            {% for image in listing.images %}
+                <a href='{{ image.url }}'>
+                    <img src='{{ image.thumbnail_url }}' height=50 width=50>
+                </a>
+            {% endfor %}
+        </div>
+    </td>
+</tr>

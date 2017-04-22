@@ -1,0 +1,54 @@
+a {
+    text-decoration: none
+}
+article {
+    margin-left: 20px
+}
+#article {
+//    width: 98%
+}
+
+#name {
+    
+    text-decoration: underline;
+    
+    .logo1 {
+        color: #66FFEF;
+    }
+    .logo2 {
+        color: white;
+    }
+}
+
+.tags {
+    font-size: 0.5em;
+    list-style: none;
+    
+    li {
+        background-color: #7DC2CC;
+        border-radius: 2px;
+        margin: 2px;
+        padding: 2px;
+    }
+}
+
+#navigation-bar {
+    
+    background-color: blue;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 0px 10px;
+    
+    div {
+        padding: 20px 10px;
+        float: left;
+        display: inline-block;
+        a, a:visited {
+            color: white;
+        }
+    }
+    
+    
+    
+}

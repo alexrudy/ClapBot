@@ -1,0 +1,28 @@
+{% extends "index.html" %}
+{% block title %}ClApBot{% endblock title %}
+{% block content %}
+<h1>ClapBot</h1>
+
+<div class='listings'>
+  <table class='datatables display' border="0" cellspacing="5" cellpadding="5">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Posted</th>
+            <th>Availalbe</th>
+            <th>Price</th>
+            <th>Bed / Bath</th>
+            <th>Images</th>
+            <th>Tags</th>
+            <th>Location</th>
+            <th>Transit</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for listing in listings %}
+      {% include "_entry.html" %}
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock content %}

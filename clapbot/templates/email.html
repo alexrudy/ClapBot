@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        {% block head %}
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>{% block title %}{% endblock title %}</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+        
+        {% endblock head %}
+    </head>
+    <body style='font-family: sans-serif' width='600px'>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+        <header>
+          <div id="header">
+        {% block header %}
+        {% endblock header %}
+          </div>
+        </header>
+        
+        <!-- Add your site or application content here -->
+        <article>
+          <div id="article">
+        {% block content %}
+        {% endblock content %}
+          </div>
+        </article>
+        
+        <footer>
+        {% block footer %}
+        <div id="footer">
+          
+        </div>
+        {% endblock footer %}
+        </footer>
+        
+        {% block scripts %}
+        {% endblock scripts %}
+    </body>
+</html>

@@ -1,0 +1,25 @@
+{% extends "email.html" %}
+{% block css %}{% endblock css %}
+{% block scripts %}{% endblock scripts %}
+{% block title %}ClApBot{% endblock title %}
+{% block header %}
+{% endblock header %}
+{% block content %}
+<h1>Check out these new listings from ClapBot:</h1>
+<div class='listings' width='600px'>
+  <table class='datatables display' border="0" cellspacing="5" cellpadding="5">
+    <thead>
+        <tr>
+            <th>Info</th>
+            <th>Images</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for listing in listings %}
+      {% set listing_loop = loop %}
+      {% include "_entry_email.html" with context %}
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock content %}

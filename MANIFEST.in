@@ -1,0 +1,4 @@
+graft clapbot/templates
+graft clapbot/static
+graft clapbot/data
+graft clapbot/assets
