@@ -1,6 +1,6 @@
 <tr>
     <td>
-        <a href='{{ listing.url }}'>{{ listing.name }}</a>
+        <a href='{{ listing.url }}' target='_blank'>{{ listing.name }}</a>
     </td>
     <td>
         {{ listing.created }}
@@ -34,11 +34,11 @@
         </ul>
     </td>
     <td>
-        {{ listing.location | truncate(120) }}
-    </td>
-    <td>{% if listing.transit_stop %}
-            {{ listing.transit_stop.name }} |
-            {{ '%.1f'|format(listing.transit_stop_distance) }}km
-        {% endif %}
+        <p>{{ listing.location | truncate(120) }}</p>
+        <p>
+            {% if listing.transit_stop %}
+                    {{ listing.transit_stop.agency }}: {{ listing.transit_stop.name }}<br />{{ '%.1f'|format(listing.transit_stop_distance) }}km
+            {% endif %}
+        </p>
     </td>
 </tr>
