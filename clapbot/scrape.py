@@ -48,6 +48,7 @@ def scrape_to_json(path, limit=20):
 
 def ingest_result(session, result):
     """Ingest a single result into the session."""
+    from . import tasks
     listing = session.query(Listing).filter_by(cl_id=result['id']).one_or_none()
     path = app.config['CRAIGSLIST_CACHE_PATH']
     filename = os.path.join(path, "{0}.json".format(result['id']))
@@ -61,7 +62,9 @@ def ingest_result(session, result):
     listing = Listing.from_result(result)
     session.add(listing)
     app.logger.info("Added Craigslist entry for {0}".format(listing.cl_id))
-
+    session.commit()
+    result = tasks.instrument_listing(listing.id)()
+    app.logger.info("Instrumenting Craigslist entry for {0}".format(listing.cl_id))
     
 
 def scrape(session, site=None, area=None, limit=20):
