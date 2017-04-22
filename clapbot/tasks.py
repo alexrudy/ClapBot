@@ -4,11 +4,18 @@ from . import celery, app, db
 from .model import Listing
 from . import scrape
 from . import location
+from .notify import send_notification
+
+def instrument_listing(listing_id):
+    """Instrument everything necessary for a given listing."""
+    return download.si(listing_id) | location_info.si(listing_id) | download_images.si(listing_id)
 
 @celery.task()
-def scrape_craigslist():
-    """Request that the scraper run."""
-    pass
+def notify():
+    """Notify by sending an email."""
+    listings = Listing.query.order_by(Listing.created).filter_by(notified=False).limit(20)
+    if listings.count():
+        send_notification(listings.all())
 
 @celery.task()
 def download(listing_id, save=False):
