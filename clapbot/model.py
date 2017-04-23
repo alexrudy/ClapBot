@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 
 from sqlalchemy.orm import validates
 
+from sqlalchemy.types import BigInteger
+
 from .application import app, db
 from .utils import coord_distance
 
@@ -118,7 +120,7 @@ class Listing(db.Model):
     name = db.Column(db.String)
     price = db.Column(db.Float)
     location = db.Column(db.String)
-    cl_id = db.Column(db.Integer, unique=True)
+    cl_id = db.Column(BigInteger, unique=True)
     
     area = db.Column(db.String)
     transit_stop_id = db.Column(db.Integer, db.ForeignKey("transitstop.id"))
