@@ -1,0 +1,16 @@
+{% extends "index.html" %}
+{% block title %}Login to ClApBot{% endblock title %}
+{% block content %}
+
+<div class='login'>
+    <h1 id='welcome'>ClapBot</h1>
+    <p>ClapBot is a personal bot I wrote to scrape craigslist for good looking housing opportunities. It's a private matter. If I've told you the password, log in below.
+    </p>
+    
+    <p>Please login to view ClapBot:</p>
+    <form action="" method="post">
+        <p><label>Password: <input type=password name=Password></label> <input type=submit value=Login></p>
+        <input type="hidden" value="{{ request.args.get('next', '') }}"/>
+    </form>
+</div>
+{% endblock content %}

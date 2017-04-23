@@ -15,3 +15,6 @@ CELERY_BROKER_URL = 'redis://localhost:6379/1'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
 MAIL_DEFAULT_SENDER = 'email@example.com'
 MAIL_DEFAULT_RECIPIENTS = ['me@example.com']
+BCRYPT_HANDLE_LONG_PASSWORDS = True
+CLAPBOT_PASSWORD = 'clapbot'
+CLAPBOT_PASSWORD_TOKEN = 'open-sesame'

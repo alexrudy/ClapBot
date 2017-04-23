@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from flask import Flask
+from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from flask_scss import Scss
 from flask_mail import Mail
@@ -39,5 +40,8 @@ app.config.from_object('clapbot.defaults')
 app.config.from_envvar('CLAPBOT_SETTINGS')
 db = SQLAlchemy(app)
 mail = Mail(app)
-Scss(app)
+scss = Scss(app)
+bcrypt = Bcrypt(app)
+app.config['CLAPBOT_PASSWORD_HASH'] = bcrypt.generate_password_hash(app.config.pop('CLAPBOT_PASSWORD'))
+
 celery = make_celery(app)

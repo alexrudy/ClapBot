@@ -4,12 +4,17 @@ a {
   article {
     margin-left: 20px; }
 
-    #name {
-      text-decoration: underline; }
-      #name .logo1 {
-        color: #66FFEF; }
-        #name .logo2 {
-          color: white; }
+    .login {
+      width: 500px; }
+      .login h1 {
+        text-align: center; }
+
+#name {
+  text-decoration: underline; }
+  #name .logo1 {
+    color: #66FFEF; }
+    #name .logo2 {
+      color: white; }
 
 .tags {
   font-size: 0.5em;

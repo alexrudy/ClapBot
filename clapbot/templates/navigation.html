@@ -5,7 +5,12 @@
   <div id="home">
     <a href='/'>Home</a>
   </div>
+  {% if session['token'] %}
   <div>
-    <a href='/mail/'>Mail Me Some Places!</a>
+    <a href='/mail/'>Email Me!</a>
   </div>
+  <div>
+    <a href='/logout'>Logout</a>
+  </div>
+  {% endif %}
 </div>
