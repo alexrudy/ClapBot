@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import craigslist
 import requests
 import click
 
@@ -13,15 +12,16 @@ import itertools
 from .application import app, db
 from .model import Listing
 
-class CraigslistHousing(craigslist.CraigslistHousing):
+class CraigslistHousing(object):
     """Set up a custom query for craigslist housing"""
     
     @classmethod
     def from_app(cls, app, site=None, area=None):
         """Make a housing query from an application object."""
+        import craigslist
         site = site or app.config['CRAIGSLIST_SITE']
         area = area or app.config['CRAIGSLIST_AREA']
-        return cls(site=site, area=area, category=app.config['CRAIGSLIST_CATEGORY'], filters=app.config['CRAIGSLIST_FILTERS'])
+        return craigslist.CraigslistHousing(site=site, area=area, category=app.config['CRAIGSLIST_CATEGORY'], filters=app.config['CRAIGSLIST_FILTERS'])
 
 def safe_iterator(iterable, limit):
     """Safe iterator, which just logs problematic entries."""
