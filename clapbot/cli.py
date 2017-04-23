@@ -7,6 +7,7 @@ from . import tasks
 from . import location
 
 import os
+import io
 import glob
 import json
 
@@ -46,7 +47,6 @@ def download_command(save, force, images):
     else:
         group = celery.group([tasks.download.si(listing.id, save=save) for listing in q])
     result = group()
-    celery_progress(result)
 
 @app.cli.command("locate")
 def locate_command():
@@ -56,7 +56,6 @@ def locate_command():
     click.echo(f"Adding location info for {n:d} listings.")
     group = celery.group([tasks.location_info.si(listing.id) for listing in q])
     result = group()
-    celery_progress(result)
     
 @app.cli.command("scrape")
 @click.option("--limit", type=int, default=20, help="Limit the number of scraped results.")
@@ -82,3 +81,5 @@ def ingest_command(path):
         click.echo("ingesting transit from {}".format(agency))
         location.import_transit(agency)
     
+    stream = io.TextIOWrapper(pkg_resources.resource_stream(__name__, "data/boxes.csv"))
+    location.import_bounding_boxes(stream)
