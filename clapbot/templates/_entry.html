@@ -1,12 +1,10 @@
 <tr>
-    <td>
+    <td width='20%'>
         <a href='{{ listing.url }}' target='_blank'>{{ listing.name }}</a>
     </td>
-    <td>
-        {{ listing.created }}
-    </td>
-    <td>
-        {{ listing.available | default('', true) }}
+    <td width=120px>
+        <p>C: {{ listing.created.strftime("%Y-%m-%d") }}</p>
+        <p>A: {{ listing.available | default('', true) }}</p>
     </td>
     <td>
         ${{ '%.2f' | format(listing.price) }}
@@ -16,7 +14,7 @@
             {{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}
         {% endif %}
     </td>
-    <td>
+    <td width='40%'>
         <div data-featherlight-gallery data-featherlight-filter="a">
             {% for image in listing.images %}
                 <a href='{{ url_for("image", identifier=image.id) }}'>
@@ -37,7 +35,7 @@
         <p>{{ listing.location | truncate(120) }}</p>
         <p>
             {% if listing.transit_stop %}
-                    {{ listing.transit_stop.agency }}: {{ listing.transit_stop.name }}<br />{{ '%.1f'|format(listing.transit_stop_distance) }}km
+                    <strong>{{ listing.transit_stop.agency }}</strong>: {{ listing.transit_stop.name }}<br />{{ '%.1f'|format(listing.transit_stop_distance) }}km
             {% endif %}
         </p>
     </td>
