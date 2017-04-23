@@ -1,10 +1,8 @@
 <tr>
-    <td width='20%'>
-        <a href='{{ listing.url }}' target='_blank'>{{ listing.name }}</a>
-    </td>
-    <td width=120px>
-        <p>C: {{ listing.created.strftime("%Y-%m-%d") }}</p>
-        <p>A: {{ listing.available | default('', true) }}</p>
+    <td class='listing-main' width='20%'>
+        <p><a href='{{ listing.url }}' target='_blank'>{{ listing.name }}</a></p>
+        <p>Created: {{ listing.created.strftime("%Y-%m-%d") }}</p>
+        <p>Available: {{ listing.available | default('', true) }}</p>
     </td>
     <td>
         ${{ '%.2f' | format(listing.price) }}
@@ -31,11 +29,11 @@
         {% endfor %}
         </ul>
     </td>
-    <td>
+    <td class='listing-location'>
         <p>{{ listing.location | default('', true) | truncate(120) }}</p>
         <p>
             {% if listing.transit_stop %}
-                    <strong>{{ listing.transit_stop.agency }}</strong>: {{ listing.transit_stop.name }}<br />{{ '%.1f'|format(listing.transit_stop_distance) }}km
+                    <strong>{{ listing.transit_stop.agency }}</strong>: {{ listing.transit_stop.name }} @ {{ '%.1f'|format(listing.transit_stop_distance) }}km
             {% endif %}
         </p>
     </td>

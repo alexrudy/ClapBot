@@ -23,12 +23,21 @@ article {
 .tags {
     font-size: 0.5em;
     list-style: none;
+    padding-left: 0px;
+    display: inline;
     
     li {
+        display: list-item flow;
         background-color: #7DC2CC;
         border-radius: 2px;
         margin: 2px;
         padding: 2px;
+    }
+}
+
+.listing-main, .listing-location {
+    p {
+        margin: 0px;
     }
 }
 
