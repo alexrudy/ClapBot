@@ -23,6 +23,8 @@ def make_celery(app):
     return celery
 
 app = Flask('clapbot')
+del app.logger.handlers[:]
+app.logger.propogate = True
 app.config.from_object('clapbot.defaults')
 app.config.from_pyfile(os.path.abspath('clapbot_config.py'))
 db = SQLAlchemy(app)
