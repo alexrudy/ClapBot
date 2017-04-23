@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from celery.schedules import crontab
+import os
 
 from . import celery, app, db
 from .model import Listing
@@ -15,7 +16,7 @@ def instrument_listing(listing_id):
 @celery.task(ignore_result=True)
 def scraper():
     """Scrape craigslist."""
-    scrape.scrape(db.session, limit=app.config['CRAIGSLIST_MAX_SCRAPE'])
+    scrape.scrape(db.session, limit=app.config['CRAIGSLIST_MAX_SCRAPE'], save=app.config['CRAIGSLIST_CACHE_ENABLE'])
 
 @celery.task(ignore_result=True)
 def notify():
@@ -25,25 +26,26 @@ def notify():
         send_notification(listings.all())
 
 @celery.task(ignore_result=True)
-def download(listing_id, save=False):
+def download(listing_id):
     """Download a listing."""
     listing = Listing.query.get(listing_id)
-    path = app.config['CRAIGSLIST_CACHE_PATH']
-    scrape.download_listing(listing, path, save=save)
+    path = os.path.join(app.instance_path, app.config['CRAIGSLIST_CACHE_PATH'])
+    scrape.download_listing(listing, path, save=app.config['CRAIGSLIST_CACHE_ENABLE'])
     db.session.commit()
 
 @celery.task(ignore_result=True)
-def download_images(listing_id, save=False, force=False):
+def download_images(listing_id, force=False):
     """Download images."""
     listing = Listing.query.get(listing_id)
-    path = app.config['CRAIGSLIST_CACHE_PATH']
-    scrape.download_images(listing, path, save=save)
+    path = os.path.join(app.instance_path, app.config['CRAIGSLIST_CACHE_PATH'])
+    scrape.download_images(listing, path, save=app.config['CRAIGSLIST_CACHE_ENABLE'])
     db.session.commit()
     
 @celery.task(ignore_result=True)
 def location_info(listing_id):
     """Find the nearest stop for a listing."""
     listing = Listing.query.get(listing_id)
+    bbox_flag = app.config['CRAIGSLIST_CHECK_BBOX']
     if not location.check_inside_bboxes(listing):
         db.session.delete(listing)
     else:

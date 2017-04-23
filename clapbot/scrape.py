@@ -36,27 +36,27 @@ def safe_iterator(iterable, limit):
         else:
             yield gen
 
-def scrape_to_json(path, limit=20):
+def scrape_to_json(path, save=True, limit=20):
     """Do a single scrape from craigslist and dump to JSON."""
     os.makedirs(path, exist_ok=True)
     query = CraigslistHousing.from_app(app)
     for result in tqdm(safe_iterator(query.get_results(sort_by='newest', geotagged=True, limit=limit), limit=limit), total=limit):
         filename = os.path.join(path, "{0}.json".format(result['id']))
-        if not os.path.exists(filename):
+        if save and not os.path.exists(filename):
             with open(filename, 'w') as f:
                 json.dump(result, f)
 
-def ingest_result(session, result):
+def ingest_result(session, result, save=False):
     """Ingest a single result into the session."""
     from . import tasks
     listing = session.query(Listing).filter_by(cl_id=result['id']).one_or_none()
-    path = app.config['CRAIGSLIST_CACHE_PATH']
+    path = os.path.join(app.instance_path, app.config['CRAIGSLIST_CACHE_PATH'])
     filename = os.path.join(path, "{0}.json".format(result['id']))
     
     if listing is not None:
         # We've seen this lisitng before, don't ingest it.
         return
-    if not os.path.exists(filename):
+    if save and not os.path.exists(filename):
         with open(filename, 'w') as f:
             json.dump(result, f)
     listing = Listing.from_result(result)
@@ -67,11 +67,11 @@ def ingest_result(session, result):
     app.logger.info("Instrumenting Craigslist entry for {0}".format(listing.cl_id))
     
 
-def scrape(session, site=None, area=None, limit=20):
+def scrape(session, site=None, area=None, limit=20, save=False):
     """Do a single scrape from craigslist and commit to the database."""
     query = CraigslistHousing.from_app(app, site=site, area=area)
     for result in safe_iterator(query.get_results(sort_by='newest', geotagged=False, limit=limit), limit=limit):
-        ingest_result(session, result)
+        ingest_result(session, result, save=save)
     
 def download_images(listing, path, save=False, force=False):
     """Download the images which belong to a single listing."""

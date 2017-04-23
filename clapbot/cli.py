@@ -64,7 +64,8 @@ def scrape_command(limit, to_json=False):
     """CLI Interface for scraping."""
     click.echo("Scraping {0:d} items.".format(limit))
     if to_json:
-        scrape.scrape_to_json(app.config['CRAIGSLIST_CACHE_PATH'], limit=limit)
+        path = os.path.join(app.instance_path, app.config['CRAIGSLIST_CACHE_PATH'])
+        scrape.scrape_to_json(path, limit=limit)
     else:
         scrape.scrape(db.session, limit=limit)
 
