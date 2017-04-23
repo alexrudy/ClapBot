@@ -100,3 +100,5 @@ ENV/
 # Configuration
 clapbot_config.py
 cldata/*
+
+config/*
