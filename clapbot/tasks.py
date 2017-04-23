@@ -8,16 +8,16 @@ from .notify import send_notification
 
 def instrument_listing(listing_id):
     """Instrument everything necessary for a given listing."""
-    return download.si(listing_id) | location_info.si(listing_id) | download_images.si(listing_id)
+    return download.si(listing_id) | download_images.si(listing_id) | location_info.si(listing_id)
 
-@celery.task()
+@celery.task(ignore_result=True)
 def notify():
     """Notify by sending an email."""
-    listings = Listing.query.order_by(Listing.created).filter_by(notified=False).limit(20)
+    listings = Listing.query.order_by(Listing.created).filter_by(notified=False).limit(app.config['CRAIGSLIST_MAX_MAIL'])
     if listings.count():
         send_notification(listings.all())
 
-@celery.task()
+@celery.task(ignore_result=True)
 def download(listing_id, save=False):
     """Download a listing."""
     listing = Listing.query.get(listing_id)
@@ -25,7 +25,7 @@ def download(listing_id, save=False):
     scrape.download_listing(listing, path, save=save)
     db.session.commit()
 
-@celery.task()
+@celery.task(ignore_result=True)
 def download_images(listing_id, save=False, force=False):
     """Download images."""
     listing = Listing.query.get(listing_id)
@@ -33,9 +33,12 @@ def download_images(listing_id, save=False, force=False):
     scrape.download_images(listing, path, save=save)
     db.session.commit()
     
-@celery.task()
+@celery.task(ignore_result=True)
 def location_info(listing_id):
     """Find the nearest stop for a listing."""
     listing = Listing.query.get(listing_id)
-    location.find_nearest_transit_stop(listing)
+    if not location.check_inside_bboxes(listing):
+        db.session.delete(listing)
+    else:
+        location.find_nearest_transit_stop(listing)
     db.session.commit()
