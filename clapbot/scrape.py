@@ -70,7 +70,7 @@ def ingest_result(session, result):
 def scrape(session, site=None, area=None, limit=20):
     """Do a single scrape from craigslist and commit to the database."""
     query = CraigslistHousing.from_app(app, site=site, area=area)
-    for result in safe_iterator(query.get_results(sort_by='newest', geotagged=True, limit=limit), limit=limit):
+    for result in safe_iterator(query.get_results(sort_by='newest', geotagged=False, limit=limit), limit=limit):
         ingest_result(session, result)
     
 def download_images(listing, path, save=False, force=False):
