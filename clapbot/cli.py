@@ -58,9 +58,9 @@ def locate_command():
     result = group()
     
 @app.cli.command("scrape")
-@click.option("--limit", type=int, default=20, help="Limit the number of scraped results.")
+@click.option("--limit", type=int, default=app.config['CRAIGSLIST_MAX_SCRAPE'], help="Limit the number of scraped results.")
 @click.option("--to-json / --no-to-json", help="Dump the data to a JSON file.")
-def scrape_command(limit=20, to_json=False):
+def scrape_command(limit, to_json=False):
     """CLI Interface for scraping."""
     click.echo("Scraping {0:d} items.".format(limit))
     if to_json:
