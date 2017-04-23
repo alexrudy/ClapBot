@@ -102,3 +102,4 @@ clapbot_config.py
 cldata/*
 
 config/*
+*.db
