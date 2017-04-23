@@ -24,7 +24,7 @@ def latest():
 @app.route("/")
 def home():
     """Homepage"""
-    listings = Listing.query.order_by(Listing.created.desc())
+    listings = Listing.query.filter(Listing.transit_stop_id != None).order_by(Listing.created.desc())
     return render_template("home.html", listings=listings)
 
 @app.route("/image/<int:identifier>/full.jpg")
