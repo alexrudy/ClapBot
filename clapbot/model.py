@@ -22,6 +22,21 @@ images = db.Table('images',
     db.Column('listing_id', db.Integer, db.ForeignKey('listing.id')),
     )
     
+class BoundingBox(db.Model):
+    """A bounding box"""
+    __tablename__ = 'boundingbox'
+    id = db.Column(db.Integer, primary_key=True)
+    lat_min = db.Column(db.Float)
+    lon_min = db.Column(db.Float)
+    lat_max = db.Column(db.Float)
+    lon_max = db.Column(db.Float)
+    
+    def contains(self, lat, lon):
+        """docstring for contains"""
+        if self.lat_min <= lat <= self.lat_max and self.lon_min <= lon <= self.lon_max:
+            return True
+        return False
+    
 class TransitStop(db.Model):
     """Transit stop model"""
     __tablename__ = 'transitstop'
@@ -180,7 +195,7 @@ class Listing(db.Model):
     @classmethod
     def from_result(cls, result):
         """Construct this object from a result."""
-        if result['geotag'] is not None:
+        if result.get('geotag', None) is not None:
             result['lat'], result['lon'] = result['geotag']
         result['cl_id'] = result.pop('id')
         result['created'] = result.pop('datetime')
@@ -194,6 +209,12 @@ class Listing(db.Model):
         """Parse HTML content from a CL page."""
         soup = BeautifulSoup(content, 'html.parser')
         self.page = content
+        
+        # Extract geotag:
+        map = soup.find('div', {'id': 'map'})
+        if map:
+            self.lat, self.lon = (float(map.attrs['data-latitude']),
+                                  float(map.attrs['data-longitude']))
         
         # Extract images:
         images = soup.find("div", {'id':'thumbs'})
@@ -237,7 +258,7 @@ class Listing(db.Model):
                         self.bathrooms = int(baths.lower().replace("ba","").strip())
                     except ValueError:
                         app.logger.warning("Can't parse bathroom tag {0}.".format(attr.text), exc_info=True)
-                else:
+                elif not any(attr.text == tag.name for tag in self.tags):
                     self.tags.append(attr.text)
     
     def download(self):

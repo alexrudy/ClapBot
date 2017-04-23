@@ -1,7 +1,7 @@
 from .utils import coord_distance
 
 from . import db
-from .model import TransitStop
+from .model import TransitStop, BoundingBox
 import pkg_resources
 import csv
 import io
@@ -17,6 +17,30 @@ def import_transit(agency):
         stop = TransitStop(agency=agency, stop_id=row['stop_id'], name=row['stop_name'], lat=row['stop_lat'], lon=row['stop_lon'])
         db.session.add(stop)
     db.session.commit()
+
+def import_bounding_boxes(stream):
+    """Import bounding boxes."""
+    reader = csv.reader(stream)
+    for (lon1, lat1, lon2, lat2) in reader:
+        lat_min, lat_max = sorted([float(lat1), float(lat2)])
+        lon_min, lon_max = sorted([float(lon1), float(lon2)])
+        bbox = BoundingBox.query.filter_by(lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max).one_or_none()
+        if bbox is not None:
+            continue
+        bbox = BoundingBox(lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max)
+        db.session.add(bbox)
+    db.session.commit()
+    
+
+def check_inside_bboxes(listing):
+    """Check that a listing is inside bboxes."""
+    if listing.lat is None or listing.lon is None:
+        return False
+    for bbox in BoundingBox.query:
+        if bbox.contains(listing.lat, listing.lon):
+            return True
+    else:
+        return False
 
 def find_nearest_transit_stop(listing):
     """Find the nearest transit stop to a listing."""
