@@ -6,9 +6,12 @@ CRAIGSLIST_CATEGORY = 'apa'
 CRAIGSLIST_FILTERS = {
     'max_price': 3100, 'min_price': 1000, 'has_image':True
 }
+CRAIGSLIST_CACHE_ENABLE = False
+CRAIGSLIST_CHECK_BBOX = True
 CRAIGSLIST_CACHE_PATH = 'cldata'
 CRAIGSLIST_MAX_MAIL = 100
 CRAIGSLIST_MAX_SCRAPE = 50
 CELERY_BROKER_URL = 'redis://localhost:6379/1'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
-MAIL_DEFAULT_SENDER = 'clapbot@alexrudy.org'
+MAIL_DEFAULT_SENDER = 'email@example.com'
+MAIL_DEFAULT_RECIPIENTS = ['me@example.com']
