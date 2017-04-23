@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from celery.schedules import crontab
+
 from . import celery, app, db
 from .model import Listing
 from . import scrape
@@ -47,3 +49,18 @@ def location_info(listing_id):
     else:
         location.find_nearest_transit_stop(listing)
     db.session.commit()
+    
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+
+    # Executes every 15 minutes.
+    sender.add_periodic_task(
+        crontab(minute='*/15'),
+        scraper.s(),
+    )
+    
+    # Executes every hour during the day.
+    sender.add_periodic_task(
+        crontab(minute=0, hour='6-22'),
+        notify.s(),
+    )
