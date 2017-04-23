@@ -26,6 +26,7 @@ class BoundingBox(db.Model):
     """A bounding box"""
     __tablename__ = 'boundingbox'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
     lat_min = db.Column(db.Float)
     lon_min = db.Column(db.Float)
     lat_max = db.Column(db.Float)

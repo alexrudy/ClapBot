@@ -21,13 +21,13 @@ def import_transit(agency):
 def import_bounding_boxes(stream):
     """Import bounding boxes."""
     reader = csv.reader(stream)
-    for (lon1, lat1, lon2, lat2) in reader:
+    for (name, lon1, lat1, lon2, lat2) in reader:
         lat_min, lat_max = sorted([float(lat1), float(lat2)])
         lon_min, lon_max = sorted([float(lon1), float(lon2)])
         bbox = BoundingBox.query.filter_by(lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max).one_or_none()
         if bbox is not None:
             continue
-        bbox = BoundingBox(lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max)
+        bbox = BoundingBox(name=name, lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max)
         db.session.add(bbox)
     db.session.commit()
     
