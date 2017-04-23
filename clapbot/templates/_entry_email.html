@@ -17,7 +17,7 @@
                 {{ tag.name }}
             {% endfor %}
         </p>
-        <p><strong>Location:</strong> {{ listing.location | truncate(120) }} 
+        <p><strong>Location:</strong> {{ listing.location | default('', true) | truncate(120) }} 
         {% if listing.transit_stop %}
             <strong>{{ listing.transit_stop.agency }}:</strong> {{ listing.transit_stop.name }} | {{ '%.1f'|format(listing.transit_stop_distance) }}km
         {% endif %}
