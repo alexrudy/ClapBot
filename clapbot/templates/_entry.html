@@ -32,7 +32,7 @@
         </ul>
     </td>
     <td>
-        <p>{{ listing.location | truncate(120) }}</p>
+        <p>{{ listing.location | default('', true) | truncate(120) }}</p>
         <p>
             {% if listing.transit_stop %}
                     <strong>{{ listing.transit_stop.agency }}</strong>: {{ listing.transit_stop.name }}<br />{{ '%.1f'|format(listing.transit_stop_distance) }}km
