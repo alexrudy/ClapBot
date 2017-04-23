@@ -145,7 +145,7 @@ class Listing(db.Model):
     
     def __repr__(self):
         """Craigslist listing repr"""
-        return f"<Listing cl_id={self.cl_id}>"
+        return "<Listing cl_id={}>".format(self.cl_id)
     
     @validates("created")
     def validate_datetime(self, key, value):
@@ -233,7 +233,7 @@ class Listing(db.Model):
         if not len(self.images):
             app.logger.warning("No images found for {0}".format(self))
             
-        app.logger.info(f"Added {len(self.images)} images to {0}".format(self))
+        app.logger.info("Added {} images to {}".format(len(self.images), self))
         # Extract text
         self.text = soup.find("section", {'id':'postingbody'}).text
         

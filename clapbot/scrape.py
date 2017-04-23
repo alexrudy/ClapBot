@@ -76,8 +76,8 @@ def scrape(session, site=None, area=None, limit=20):
 def download_images(listing, path, save=False, force=False):
     """Download the images which belong to a single listing."""
     for image in listing.images:
-        full_name = os.path.join(path, f"{image.cl_id}.full.jpg")
-        thumb_name = os.path.join(path, f"{image.cl_id}.thumb.jpg")
+        full_name = os.path.join(path, "{image.cl_id}.full.jpg".format(image=image))
+        thumb_name = os.path.join(path, "{image.cl_id}.thumb.jpg".format(image=image))
         if (image.full is None) and os.path.exists(full_name):
             with open(full_name, 'rb') as f:
                 image.full = f.read()
@@ -94,7 +94,7 @@ def download_images(listing, path, save=False, force=False):
     
 def download_listing(listing, path, save=False):
     """Using a single listing, download and save html if asked"""
-    filename = os.path.join(path, f"{listing.cl_id}.html")
+    filename = os.path.join(path, "{listing.cl_id}.html".format(listing=listing))
     
     # Download page.
     if save and os.path.exists(filename):

@@ -38,7 +38,7 @@ def download_command(save, force, images):
     else:
         q = Listing.query.filter_by(text=None)
     n = q.count()
-    click.echo(f"Downloading Craigslist page for {n:d} listings.")
+    click.echo("Downloading Craigslist page for {n:d} listings.".format(n=n))
     if images:
         group = celery.group([celery.chain(
                                           tasks.download.si(listing.id, save=save), 
@@ -53,7 +53,7 @@ def locate_command():
     """Add location info to listings."""
     q = Listing.query
     n = q.count()
-    click.echo(f"Adding location info for {n:d} listings.")
+    click.echo("Adding location info for {n:d} listings.".format(n=n))
     group = celery.group([tasks.location_info.si(listing.id) for listing in q])
     result = group()
     
