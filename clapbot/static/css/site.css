@@ -31,15 +31,19 @@ a {
 .listing-main p, .listing-location p {
   margin: 0px; }
 
-#navigation-bar {
-  background-color: blue;
-  color: white;
-  font-weight: bold;
-  font-size: 1.2em;
-  padding: 0px 10px; }
-  #navigation-bar div {
-    padding: 20px 10px;
-    float: left;
-    display: inline-block; }
-    #navigation-bar div a, #navigation-bar div a:visited {
-      color: white; }
+.listing-links ul {
+  list-style: none;
+  padding-left: 0px; }
+
+  #navigation-bar {
+    background-color: blue;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 0px 10px; }
+    #navigation-bar div {
+      padding: 20px 10px;
+      float: left;
+      display: inline-block; }
+      #navigation-bar div a, #navigation-bar div a:visited {
+        color: white; }

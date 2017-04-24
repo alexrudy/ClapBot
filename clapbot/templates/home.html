@@ -9,14 +9,7 @@
   {{ render_pagination(pagination, 'home') }}
   <table class='datatables display' border="0" cellspacing="5" cellpadding="5">
     <thead>
-        <tr>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Bed / Bath</th>
-            <th>Images</th>
-            <th>Tags</th>
-            <th>Location</th>
-        </tr>
+    {% include "_entry_header.html" %}
     </thead>
     <tbody>
     {% for listing in pagination.items %}

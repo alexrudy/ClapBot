@@ -2,10 +2,11 @@
 
 import io
 from functools import wraps
-from flask import render_template, send_file, redirect, session, request, g, url_for
+from sqlalchemy import or_
+from flask import render_template, send_file, redirect, session, request, g, url_for, jsonify
 
 from .application import app, db, bcrypt
-from .model import Listing, Image
+from .model import Listing, Image, UserListingInfo
 
 from .tasks import notify
 
@@ -51,7 +52,9 @@ def latest():
 @login_required
 def home():
     """Homepage"""
-    listings = Listing.query.filter(Listing.transit_stop_id != None).order_by(Listing.created.desc())
+    listings = Listing.query.filter(Listing.transit_stop_id != None)
+    listings = listings.join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+    listings = listings.order_by(Listing.created.desc())
     return render_template("home.html", listings=listings)
 
 @app.route("/image/<int:identifier>/full.jpg")
@@ -72,3 +75,44 @@ def thumbnail(identifier):
     else:
         return redirect(img.thumbnail_url)
     
+
+@app.route("/listing/<int:id>/reject", methods=['POST'])
+@login_required
+def reject(id):
+    """Reject the named listing."""
+    listing = Listing.query.get_or_404(id)
+    listing.userinfo.rejected = True
+    db.session.commit()
+    return jsonify({'id':id,'score':listing.userinfo.score})
+    
+@app.route("/listing/<int:id>/upvote", methods=['POST'])
+@login_required
+def upvote(id):
+    """Reject the named listing."""
+    listing = Listing.query.get_or_404(id)
+    listing.userinfo.score += 1
+    db.session.commit()
+    return jsonify({'id':id,'score':listing.userinfo.score})
+
+@app.route("/listing/<int:id>/downvote", methods=['POST'])
+@login_required
+def downvote(id):
+    """Reject the named listing."""
+    listing = Listing.query.get_or_404(id)
+    listing.userinfo.score -= 1
+    db.session.commit()
+    return jsonify({'id':id,'score':listing.userinfo.score})
+
+@app.route("/listing/<int:id>/", methods=['GET', 'POST'])
+@login_required
+def listing(id):
+    """View a single listing."""
+    listing = Listing.query.get_or_404(id)
+    if request.method == 'POST':
+        print(list(request.form.keys()))
+        listing.userinfo.rejected = request.form.get('rejected', False)
+        listing.userinfo.contacted = request.form.get('contacted', False)
+        listing.userinfo.notes = request.form['notes']
+        db.session.commit()
+        return redirect(url_for('listing', id=id))
+    return render_template("single.html", listing=listing)

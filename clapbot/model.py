@@ -8,7 +8,7 @@ import datetime as dt
 from bs4 import BeautifulSoup
 
 from sqlalchemy.orm import validates
-
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import BigInteger
 
 from .application import app, db
@@ -106,6 +106,19 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
     
+class UserListingInfo(db.Model):
+    """Listing help information from the user."""
+    
+    __tablename__ = 'userlistinginfo'
+    id = db.Column(db.Integer, primary_key=True)
+    listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'))
+    listing = db.relationship("Listing", backref=db.backref("_userinfo", uselist=False))
+    rejected = db.Column(db.Boolean, default=False)
+    contacted = db.Column(db.Boolean, default=False)
+    score = db.Column(db.Integer, default=0)
+    notes = db.Column(db.Text, default="")
+    
+    
 class Listing(db.Model):
     """Craigslist Listing"""
     __tablename__ = 'listing'
@@ -139,6 +152,18 @@ class Listing(db.Model):
                              backref=db.backref('listings', lazy='dynamic'))
     
     notified = db.Column(db.Boolean, default=False)
+    
+    @hybrid_property
+    def userinfo(self):
+        """Return the userinfo object, if it is found."""
+        if self._userinfo is None:
+            self._userinfo = UserListingInfo(listing_id=self.id, score=0, rejected=False, contacted=False)
+        return self._userinfo
+        
+    @userinfo.expression
+    def userinfo(cls):
+        """Return the userinfo reference."""
+        return UserListingInfo
     
     @property
     def transit_stop_distance(self):

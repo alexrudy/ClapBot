@@ -1,0 +1,25 @@
+{% extends "index.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}ClApBot{% endblock title %}
+{% block content %}
+<h1>ClapBot</h1>
+
+<div class='listings'>
+  <table class='datatables display' border="0" cellspacing="5" cellpadding="5">
+    <thead>
+    {% include "_entry_header.html" %}
+    </thead>
+    <tbody>
+    {% include "_entry.html" %}
+    </tbody>
+</table>
+</div>
+<div class='userinfo'>
+    <form action="" method="post">
+        <p><label>Reject? <input name='rejected' type='checkbox' value='rejected' {% if listing.userinfo.rejected %}checked=''{% endif %}></label> <label>Contact? <input name='contacted' type='checkbox' value='contacted' {% if listing.userinfo.contacted %}checked=''{% endif %}></label></p>
+        <p><label>Notes:</label></p>
+        <p><textarea name='notes' cols=100>{{ listing.userinfo.notes | default("", true) }}</textarea></p>
+        <p><input type='submit'></p>
+    </form>
+</div>
+{% endblock content %}
