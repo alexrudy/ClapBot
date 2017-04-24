@@ -1,9 +1,12 @@
 {% extends "index.html" %}
+{% from "_pagination.html" import render_pagination %}
 {% block title %}ClApBot{% endblock title %}
 {% block content %}
 <h1>ClapBot</h1>
 
 <div class='listings'>
+  {% set pagination = listings.paginate() %}
+  {{ render_pagination(pagination, 'home') }}
   <table class='datatables display' border="0" cellspacing="5" cellpadding="5">
     <thead>
         <tr>
@@ -16,10 +19,11 @@
         </tr>
     </thead>
     <tbody>
-    {% for listing in listings %}
+    {% for listing in pagination.items %}
       {% include "_entry.html" %}
     {% endfor %}
     </tbody>
   </table>
+  {{ render_pagination(pagination, 'home') }}
 </div>
 {% endblock content %}

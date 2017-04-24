@@ -17,7 +17,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@app.route("/mail/")
+@app.route("/mail")
 @login_required
 def mailer():
     """Mail things to me!"""
@@ -34,15 +34,13 @@ def logout():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        #TODO: Handle passwords:
-        print("Checking password {0}".format(request.form['Password']))
         if bcrypt.check_password_hash(app.config['CLAPBOT_PASSWORD_HASH'], request.form['Password']):
             session['token'] = app.config['CLAPBOT_PASSWORD_TOKEN']
         return redirect(url_for('home'))
     else:
         return render_template("login.html")
 
-@app.route("/latest/")
+@app.route("/latest")
 @login_required
 def latest():
     """Render the latest few as if they were to be emailed."""
