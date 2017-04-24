@@ -63,6 +63,6 @@ def setup_periodic_tasks(sender, **kwargs):
     
     # Executes every hour during the day.
     sender.add_periodic_task(
-        crontab(minute=0, hour='6-22'),
+        crontab(minute=0, hour='0-5,12-23'),
         notify.s(),
     )
