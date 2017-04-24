@@ -28,10 +28,11 @@ instance_dir = os.getcwd()
 if 'CLAPBOT_INSTANCE' in os.environ:
     instance_dir = os.path.abspath(os.path.expanduser(os.environ['CLAPBOT_INSTANCE']))
 if 'VIRTUAL_ENV' in os.environ:
-    project_dir = os.path.abspath(os.path.expanduser(open(os.path.join(os.environ['VIRTUAL_ENV'], '.project')).read().strip('\r\n')))
-    instance_candidate = os.path.join(project_dir, 'config', 'develop')
-    if os.path.isdir(instance_candidate):
-        instance_dir = os.path.join(project_dir, 'config', 'develop')
+    if os.path.isfile(os.path.join(os.environ['VIRTUAL_ENV'], '.project')):
+        project_dir = os.path.abspath(os.path.expanduser(open(os.path.join(os.environ['VIRTUAL_ENV'], '.project')).read().strip('\r\n')))
+        instance_candidate = os.path.join(project_dir, 'config', 'develop')
+        if os.path.isdir(instance_candidate):
+            instance_dir = os.path.join(project_dir, 'config', 'develop')
     
 app = Flask('clapbot', instance_path=instance_dir, instance_relative_config=True)
 del app.logger.handlers[:]
