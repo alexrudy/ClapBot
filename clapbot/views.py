@@ -46,15 +46,18 @@ def login():
 def latest():
     """Render the latest few as if they were to be emailed."""
     listings = Listing.query.order_by(Listing.created.desc()).limit(20)
-    return render_template("notify.html", listings=listings)
+    listings = listings.from_self().join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+    listings = listings.order_by(UserListingInfo.score.desc())
+    return render_template("home.html", listings=listings)
 
 @app.route("/")
 @login_required
 def home():
     """Homepage"""
     listings = Listing.query.filter(Listing.transit_stop_id != None)
-    listings = listings.join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
     listings = listings.order_by(Listing.created.desc())
+    listings = listings.from_self().join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+    listings = listings.order_by(UserListingInfo.score.desc())
     return render_template("home.html", listings=listings)
 
 @app.route("/image/<int:identifier>/full.jpg")
@@ -90,7 +93,7 @@ def reject(id):
 def upvote(id):
     """Reject the named listing."""
     listing = Listing.query.get_or_404(id)
-    listing.userinfo.score += 1
+    listing.userinfo.score += 100
     db.session.commit()
     return jsonify({'id':id,'score':listing.userinfo.score})
 
@@ -99,7 +102,7 @@ def upvote(id):
 def downvote(id):
     """Reject the named listing."""
     listing = Listing.query.get_or_404(id)
-    listing.userinfo.score -= 1
+    listing.userinfo.score -= 100
     db.session.commit()
     return jsonify({'id':id,'score':listing.userinfo.score})
 

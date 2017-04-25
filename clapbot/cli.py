@@ -48,6 +48,15 @@ def download_command(save, force, images):
         group = celery.group([tasks.download.si(listing.id, save=save) for listing in q])
     result = group()
 
+@app.cli.command("score")
+def score_command():
+    """Score listings"""
+    q = Listing.query
+    n = q.count()
+    click.echo("Adding location info for {n:d} listings.".format(n=n))
+    group = celery.group([tasks.score.si(listing.id) for listing in q])
+    group()
+
 @app.cli.command("locate")
 def locate_command():
     """Add location info to listings."""

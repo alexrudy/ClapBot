@@ -6,7 +6,7 @@
 
 <div class='listings'>
   {% set pagination = listings.paginate() %}
-  {{ render_pagination(pagination, 'home') }}
+  {{ render_pagination(pagination, request.endpoint) }}
   <table class='datatables display' border="0" cellspacing="5" cellpadding="5">
     <thead>
     {% include "_entry_header.html" %}
@@ -17,6 +17,6 @@
     {% endfor %}
     </tbody>
   </table>
-  {{ render_pagination(pagination, 'home') }}
+  {{ render_pagination(pagination, request.endpoint) }}
 </div>
 {% endblock content %}

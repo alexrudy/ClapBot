@@ -168,7 +168,17 @@ class Listing(db.Model):
     @property
     def transit_stop_distance(self):
         """Distance to the transit stop"""
-        return coord_distance(self.lat, self.lon, self.transit_stop.lat, self.transit_stop.lon)
+        return self.distance_to(self.transit_stop.lat, self.transit_stop.lon)
+        
+    @property
+    def score_info(self):
+        """Return the score info for a listing."""
+        from .score import score_info
+        return score_info(self)
+        
+    def distance_to(self, lat, lon):
+        """Distance to some position."""
+        return coord_distance(self.lat, self.lon, lat, lon)
     
     def __repr__(self):
         """Craigslist listing repr"""

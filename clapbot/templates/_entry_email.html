@@ -1,7 +1,10 @@
 <tr bgcolor='{{ listing_loop.cycle("#97D1DD", "white") }}'>
     <td>
-        <a href='{{ listing.url }}'>{{ listing.name }}</a>
+        <a href='{{ url_for("listing", id=listing.id, _external=True) }}'>{{ listing.name }}</a>
         <p><strong>Created at</strong> {{ listing.created }} <strong>Available on</strong> {{ listing.available | default('?', true) }}</p>
+        <p>
+            Score: <span class='score'>{{ '%.0f' | format(listing.userinfo.score) }}{% if listing.userinfo.rejected %}R{% endif %}</span>
+</p>
         <p><strong>Price</strong> ${{ '%.2f' | format(listing.price) }}
         {% if listings.bedrooms or listing.bathrooms %}
             <strong>Beds / Baths:</strong> {{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}

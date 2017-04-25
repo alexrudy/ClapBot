@@ -6,7 +6,7 @@
             <li class='listing-form' data-listing-id='{{ listing.id }}'>
             </li>
             <li class='listing-form' data-listing-id='{{ listing.id }}'>
-                Score: <span class='score'>{{ listing.userinfo.score | default(0, true) }}{% if listing.userinfo.rejected %}R{% endif %}</span>
+                Score: <span class='score'>{{ '%.0f' | format(listing.userinfo.score) }}{% if listing.userinfo.rejected %}R{% endif %}</span>
                 <button data-target='score' data-listing-url='{{ url_for("upvote", id=listing.id) }}'>&uarr;</button>
                 <button data-target='score' data-listing-url='{{ url_for("downvote", id=listing.id) }}'>&darr;</button>
                 <button data-target='reject' data-listing-url='{{ url_for("reject", id=listing.id) }}'>X</button>
@@ -18,6 +18,9 @@
         <p>${{ '%.2f' | format(listing.price) }}</p>
         {% if listing.bedrooms or listing.bathrooms %}
             <p>Bed/Ba: {{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}</p>
+        {% endif %}
+        {% if listing.size %}
+            <p><strong>Area:</strong> {{ '%.0f sqare ft'|format(listing.size) }}</p>
         {% endif %}
         <p>Created: {{ listing.created.strftime("%Y-%m-%d") }}</p>
         <p>Available: {{ listing.available | default('', true) }}</p>
@@ -33,13 +36,6 @@
         </div>
         
     </td>
-    <td>
-        <ul class='tags'>
-        {% for tag in listing.tags %}
-            <li>{{ tag.name }}</li>
-        {% endfor %}
-        </ul>
-    </td>
     <td class='listing-location'>
         <p><a href='http://maps.google.com/?q={{listing.lat}},{{listing.lon}}' target='_blank'>{{ listing.location | default('', true) | truncate(120) }}</a></p>
         <p>
@@ -47,5 +43,26 @@
                     <strong>{{ listing.transit_stop.agency }}</strong>: {{ listing.transit_stop.name }} @ {{ '%.1f'|format(listing.transit_stop_distance) }}km
             {% endif %}
         </p>
+        {% if listing.lat != None %}
+        <p>Berkeley: {{ '%.1f' | format(listing.distance_to(37.869867, -122.268045)) }}km</p>
+        {% endif %}
+    </td>
+    <td>
+        <ul class='tags'>
+        {% for tag in listing.tags %}
+            {% if "2017" not in tag.name %}
+            <li>{{ tag.name }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+    </td>
+    <td>
+        <ul class='tags'>
+        {% for name, score in listing.score_info|dictsort %}
+            {% if score != 0.0 %}
+            <li>{{ name }}: {{ '%.0f' | format(score) }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>
     </td>
 </tr>
