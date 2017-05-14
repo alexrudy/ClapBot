@@ -37,7 +37,7 @@ def login():
     if request.method == 'POST':
         if bcrypt.check_password_hash(app.config['CLAPBOT_PASSWORD_HASH'], request.form['Password']):
             session['token'] = app.config['CLAPBOT_PASSWORD_TOKEN']
-        return redirect(url_for('home'))
+        return redirect(request.form['Redirect'])
     else:
         return render_template("login.html")
 
