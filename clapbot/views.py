@@ -79,6 +79,25 @@ def thumbnail(identifier):
         return redirect(img.thumbnail_url)
     
 
+@app.route("/listing/starred")
+@login_required
+def starred():
+    """Starred lisitngs"""
+    listings = Listing.query.filter(Listing.transit_stop_id != None)
+    listings = listings.order_by(Listing.created.desc())
+    listings = listings.from_self().join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None), UserListingInfo.starred == True)
+    listings = listings.order_by(UserListingInfo.score.desc())
+    return render_template("home.html", listings=listings, title='Starred')
+
+@app.route("/listing/<int:id>/star", methods=['POST'])
+@login_required
+def star(id):
+    """Star the named listing."""
+    listing = Listing.query.get_or_404(id)
+    listing.userinfo.starred = not listing.userinfo.starred
+    db.session.commit()
+    return jsonify({'id':id, 'score':listing.userinfo.score})
+
 @app.route("/listing/<int:id>/reject", methods=['POST'])
 @login_required
 def reject(id):
@@ -86,7 +105,7 @@ def reject(id):
     listing = Listing.query.get_or_404(id)
     listing.userinfo.rejected = True
     db.session.commit()
-    return jsonify({'id':id,'score':listing.userinfo.score})
+    return jsonify({'id':id, 'score':listing.userinfo.score})
     
 @app.route("/listing/<int:id>/upvote", methods=['POST'])
 @login_required

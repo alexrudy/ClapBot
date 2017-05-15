@@ -9,7 +9,7 @@
                 Score: <span class='score'>{{ '%.0f' | format(listing.userinfo.score) }}{% if listing.userinfo.rejected %}R{% endif %}</span>
                 <button data-target='score' data-listing-url='{{ url_for("upvote", id=listing.id) }}'>&uarr;</button>
                 <button data-target='score' data-listing-url='{{ url_for("downvote", id=listing.id) }}'>&darr;</button>
-                <button data-target='reject' data-listing-url='{{ url_for("reject", id=listing.id) }}'>X</button>
+                <button data-target='star' data-listing-url='{{ url_for("star", id=listing.id) }}'>&#x2B50;&#xFE0F;</button>
                 
             </li>
         </ul>

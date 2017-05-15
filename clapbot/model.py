@@ -114,6 +114,7 @@ class UserListingInfo(db.Model):
     listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'))
     listing = db.relationship("Listing", backref=db.backref("_userinfo", uselist=False))
     rejected = db.Column(db.Boolean, default=False)
+    starred = db.Column(db.Boolean, default=False)
     contacted = db.Column(db.Boolean, default=False)
     score = db.Column(db.Integer, default=0)
     notes = db.Column(db.Text, default="")
