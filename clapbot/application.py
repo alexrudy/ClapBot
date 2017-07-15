@@ -7,6 +7,7 @@ from flask_scss import Scss
 from flask_mail import Mail
 from celery import Celery
 import logging
+import socket
 
 logging.basicConfig(format='--> %(levelname)-8s: %(message)s', level=logging.DEBUG)
 
@@ -34,6 +35,8 @@ if 'VIRTUAL_ENV' in os.environ:
         if os.path.isdir(instance_candidate):
             instance_dir = os.path.join(project_dir, 'config', 'develop')
     
+
+
 app = Flask('clapbot', instance_path=instance_dir, instance_relative_config=True)
 del app.logger.handlers[:]
 app.logger.propogate = True
