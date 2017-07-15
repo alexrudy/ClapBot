@@ -96,7 +96,7 @@ def star(id):
     listing = Listing.query.get_or_404(id)
     listing.userinfo.starred = not listing.userinfo.starred
     db.session.commit()
-    return jsonify({'id':id, 'score':listing.userinfo.score})
+    return jsonify({'id':id, 'starred': listing.userinfo.starred})
 
 @app.route("/listing/<int:id>/reject", methods=['POST'])
 @login_required
@@ -105,7 +105,7 @@ def reject(id):
     listing = Listing.query.get_or_404(id)
     listing.userinfo.rejected = True
     db.session.commit()
-    return jsonify({'id':id, 'score':listing.userinfo.score})
+    return jsonify({'id':id, 'rejected': listing.userinfo.rejected})
     
 @app.route("/listing/<int:id>/upvote", methods=['POST'])
 @login_required

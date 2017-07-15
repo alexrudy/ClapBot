@@ -23,6 +23,13 @@ $(document).ready(function(){
                                     if (button.attr('data-target') === 'score') {
                                         button.siblings('span.score').text(data.score)
                                     }
+                                    if (button.attr('data-target') === 'star') {
+                                        if (data.starred) {
+                                            button.html("<span style='color: gold;'>⭑</span>")
+                                        } else {
+                                            button.html("<span style='color: black;'>⭑</span>")
+                                        }
+                                    }
                                 }
                         });
                     });
