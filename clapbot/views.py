@@ -131,10 +131,15 @@ def listing(id):
     """View a single listing."""
     listing = Listing.query.get_or_404(id)
     if request.method == 'POST':
-        print(list(request.form.keys()))
         listing.userinfo.rejected = request.form.get('rejected', False)
         listing.userinfo.contacted = request.form.get('contacted', False)
         listing.userinfo.notes = request.form['notes']
         db.session.commit()
         return redirect(url_for('listing', id=id))
     return render_template("single.html", listing=listing)
+
+@app.route("/listing/clid/<int:clid>/")
+@login_required
+def listing_cragislistid():
+    """View a listing by craigslist ID"""
+    pass
