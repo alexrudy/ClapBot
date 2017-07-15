@@ -65,7 +65,7 @@ def location_info(listing_id):
     """Find the nearest stop for a listing."""
     listing = Listing.query.get(listing_id)
     bbox_flag = app.config['CRAIGSLIST_CHECK_BBOX']
-    if not location.check_inside_bboxes(listing):
+    if (not location.check_inside_bboxes(listing)) and bbox_flag:
         db.session.delete(listing)
     else:
         location.find_nearest_transit_stop(listing)
