@@ -39,6 +39,9 @@ def age(listing):
 @scorer
 def transit(listing):
     """Score a listing's transit options."""
+    if not app.config['CRAIGSLIST_SCORE_TRANSIT']:
+        return 0
+    
     if listing.transit_stop is None:
         return -200
     elif listing.transit_stop_distance < 1.0:
@@ -55,18 +58,24 @@ def location(listing):
     """Score location"""
     if listing.lat is None:
         return 0.0
-    to_berk = listing.distance_to(37.876685, -122.261998)
-    if to_berk < 10.0:
-        return 1000 * ((10.0 - to_berk) / 10.0)
-    elif to_berk < 20.0:
-        return 250 * ((20.0 - to_berk) / 20.0)
+    lat = app.config['CRAIGSLIST_SCORE_WORK_LAT']
+    lon = app.config['CRAIGSLIST_SCORE_WORK_LON']
+    to_berk = listing.distance_to(lat, lon)
+    
+    dwork_close = app.config['CRAIGSLIST_SCORE_WORK_CLOSE']
+    dwork_medium = app.config['CRAIGSLIST_SCORE_WORK_MEDIUM']
+    
+    if to_berk < dwork_close:
+        return 1000 * ((dwork_close - to_berk) / dwork_close)
+    elif to_berk < dwork_medium:
+        return 250 * ((dwork_medium - to_berk) / dwork_medium)
     return 0.0
 
 @scorer
 def title(listing):
     """Suspicious title scoring."""
     if "studio" in listing.name.lower():
-        return -1500
+        return app.config['CRAIGSLIST_SCORE_STUDIO_PENALTY']
     return 0.0
 
 @scorer
