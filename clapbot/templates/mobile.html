@@ -1,0 +1,93 @@
+{% extends "index.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}ClApBot{% endblock title %}
+{% block header %}
+{% endblock  %}
+{% block content %}
+<div id='navigation'>
+    <ul>
+        <li><a href='{{ url_for("mobile_starred") }}'>🏡</a></li>
+        <li><a href='{{ url_for("mobile_starred") }}'><span style='color: gold;'>⭑</span></a></li>
+    </ul>
+</div>
+<div class='mobile listing'>
+    <h2><a href='{{ listing.url }}' target='_blank'>{{ listing.name }}</a></h2>
+    <div class='listing-form'>
+        <a href='{% if previous_listing %}{{ url_for("mobile", identifier=previous_listing.id )}}{% endif %}'>
+            <img src='/static/img/larrow.png' width=40>
+        </a>
+        <button data-target='reject' data-listing-url='{{ url_for("reject", id=listing.id) }}' data-next-listing='{% if next_listing %}{{ url_for("mobile", identifier=next_listing.id, _external=True)}}{% endif %}' width=50>
+            {% if listing.userinfo.rejected %}
+            <span style='color: red;'>✖︎</span>
+            {% else %}
+            <span style='color: black;'>✖︎</span>
+            {% endif %}
+        </button>
+        <button data-target='star' data-listing-url='{{ url_for("star", id=listing.id) }}' data-next-listing='{% if next_listing %}{{ url_for("mobile", identifier=next_listing.id, _external=True)}}{% endif %}'>
+            {% if listing.userinfo.starred %}
+            <span style='color: gold;'>⭑</span>
+            {% else %}
+            <span style='color: black;'>⭑</span>
+            {% endif %}
+        </button>
+        <a href='{% if next_listing %}{{ url_for("mobile", identifier=next_listing.id )}}{% endif %}'>
+            <img src='/static/img/rarrow.png' width=40>
+        </a>
+    </div>
+    <div data-featherlight-gallery data-featherlight-filter="div a" class='listing-images clearfix'>
+        <div>
+            <a href='{{ url_for("image", identifier=listing.images[0].id) }}'>
+                <img src='{{ url_for("image", identifier=listing.images[0].id) }}', height=200>
+            </a>
+        </div>
+        {% for image in listing.images %}
+            {% if loop.first %}
+            {% else %}
+            <div class='float-left clearfix'>
+                <a href='{{ url_for("image", identifier=image.id) }}'>
+                    <img src='{{ url_for("thumbnail", identifier=image.id) }}' height=20 width=20>
+                </a>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class='listing-info clearfix'>
+        <h3>Info</h3>
+        <div class='float-left clearfix'>
+            <p>${{ '%.2f' | format(listing.price) }}</p>
+            {% if listing.bedrooms or listing.bathrooms %}
+                <p>Bed/Ba: {{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}</p>
+            {% endif %}
+            {% if listing.size %}
+                <p><strong>Area:</strong> {{ '%.0f sqare ft'|format(listing.size) }}</p>
+            {% endif %}
+            <p>Created: {{ listing.created.strftime("%Y-%m-%d") }}</p>
+            <p>Available: {{ listing.available | default('', true) }}</p>
+        </div>
+        <div class='float-left clearfix'>
+            <p><a href='http://maps.google.com/?q={{listing.lat}},{{listing.lon}}' target='_blank'>{{ listing.location | default('', true) | truncate(120) }}</a></p>
+            <p>
+                {% if listing.transit_stop %}
+                        <strong>{{ listing.transit_stop.agency }}</strong>: {{ listing.transit_stop.name }} @ {{ '%.1f'|format(listing.transit_stop_distance) }}km
+                {% endif %}
+            </p>
+            {% if listing.lat != None %}
+            <p>Berkeley: {{ '%.1f' | format(listing.distance_to(37.869867, -122.268045)) }}km</p>
+            {% endif %}
+        </div>
+    </div>
+    <div>
+        <ul class='tags clearfix'>
+        {% for tag in listing.tags %}
+            {% if "2017" not in tag.name %}
+            <li class='float-left'>{{ tag.name }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+    </div>
+    <div class='listing-text'>
+        <p>{{ listing.text }}</p>
+    </div>
+
+</div>
+{% endblock content %}

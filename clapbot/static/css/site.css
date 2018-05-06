@@ -31,19 +31,64 @@ a {
 .listing-main p, .listing-location p {
   margin: 0px; }
 
-.listing-links ul {
-  list-style: none;
-  padding-left: 0px; }
+article {
+  margin-left: 1em;
+  margin-right: 1em; }
 
-  #navigation-bar {
-    background-color: blue;
-    color: white;
-    font-weight: bold;
-    font-size: 1.2em;
-    padding: 0px 10px; }
-    #navigation-bar div {
-      padding: 20px 10px;
-      float: left;
-      display: inline-block; }
-      #navigation-bar div a, #navigation-bar div a:visited {
-        color: white; }
+  .mobile h3 {
+    margin: 0em; }
+    .mobile p {
+      margin: 0em; }
+      .mobile .listing-images {
+        margin-left: auto;
+        margin-right: auto;
+        width: 80%; }
+        .mobile .listing-images img {
+          max-width: 100%; }
+  .mobile .listing-form {
+    margin-left: auto;
+    margin-right: auto;
+    width: 210px; }
+    .mobile .listing-text {
+      font-size: 0.75em; }
+      .mobile .listing-text p {
+        margin-right: 2em; }
+  .mobile .listing-info {
+    font-size: 0.75em; }
+    .mobile .listing-info div {
+      padding: 5px; }
+
+.featherlight-content {
+  max-width: 100%; }
+
+  .featherlight .featherlight-image {
+    width: auto !important;
+    max-width: 100%; }
+
+    .listing-links ul {
+      list-style: none;
+      padding-left: 0px; }
+
+      .float-left {
+        float: left; }
+
+        .float-right {
+          float: right; }
+
+          .mobile .listing-form button {
+            width: 50px;
+            height: 50px;
+            font-size: 2em; }
+
+#navigation-bar {
+  background-color: blue;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2em;
+  padding: 0px 10px; }
+  #navigation-bar div {
+    padding: 20px 10px;
+    float: left;
+    display: inline-block; }
+    #navigation-bar div a, #navigation-bar div a:visited {
+      color: white; }

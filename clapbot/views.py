@@ -60,6 +60,35 @@ def home():
     listings = listings.order_by(UserListingInfo.score.desc())
     return render_template("home.html", listings=listings)
 
+def filter_rejected(listings):
+    """Filter out rejected listings"""
+    joined = listings.from_self().join(UserListingInfo, isouter=True)
+    return joined.filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+
+@app.route("/mobile/")
+def mobile_start():
+    """Mobile start page"""
+    listings = Listing.query.order_by(Listing.created.desc())
+    listings = filter_rejected(listings)
+    listing = listings.order_by(UserListingInfo.score.desc()).first()
+    return redirect(url_for("mobile", identifier=listing.id))
+
+@app.route("/mobile/<int:identifier>/")
+def mobile(identifier):
+    """A mobile view, for a single listing."""
+    listing = Listing.query.get_or_404(identifier)
+    prev_lisitng = Listing.query.filter(Listing.created < listing.created).order_by(Listing.created.desc())
+    prev_lisitng = prev_lisitng.limit(1).one_or_none()
+    next_lisitng = Listing.query.filter(Listing.created > listing.created).order_by(Listing.created.asc())
+    next_lisitng = next_lisitng.limit(1).one_or_none()
+    return render_template("mobile.html", listing=listing, previous_listing=prev_lisitng, next_listing=next_lisitng)
+
+@app.route("/mobile/starred/")
+def mobile_starred(identifier):
+    """Mobile starred items"""
+    joined = listings.from_self().join(UserListingInfo, isouter=True)
+    return joined.filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+
 @app.route("/image/<int:identifier>/full.jpg")
 def image(identifier):
     """Serve an image from the local database."""
@@ -103,9 +132,9 @@ def star(id):
 def reject(id):
     """Reject the named listing."""
     listing = Listing.query.get_or_404(id)
-    listing.userinfo.rejected = True
+    listing.userinfo.rejected = not listing.userinfo.rejected
     db.session.commit()
-    return jsonify({'id':id, 'rejected': listing.userinfo.rejected})
+    return jsonify({'id':id, 'rejected': listing.userinfo.rejected })
     
 @app.route("/listing/<int:id>/upvote", methods=['POST'])
 @login_required
