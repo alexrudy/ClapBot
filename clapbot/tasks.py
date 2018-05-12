@@ -73,7 +73,7 @@ def location_info(listing_id):
     
 @celery.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-
+    
     # Executes every 15 minutes.
     sender.add_periodic_task(
         crontab(minute='*/15'),

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import io
+import datetime as dt
 from functools import wraps
 from sqlalchemy import or_
 from flask import render_template, send_file, redirect, session, request, g, url_for, jsonify
@@ -9,6 +10,11 @@ from .application import app, db, bcrypt
 from .model import Listing, Image, UserListingInfo
 
 from .tasks import notify
+
+@app.route('/healthcheck')
+def healthcheck():
+    """Respond with a healthcheck"""
+    return jsonify({'time': dt.datetime.now().isoformat()})
 
 def login_required(f):
     @wraps(f)
@@ -54,7 +60,7 @@ def latest():
 @login_required
 def home():
     """Homepage"""
-    listings = Listing.query.filter(Listing.transit_stop_id != None)
+    listings = Listing.query
     listings = listings.order_by(Listing.created.desc())
     listings = listings.from_self().join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
     listings = listings.order_by(UserListingInfo.score.desc())

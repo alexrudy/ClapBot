@@ -41,7 +41,7 @@ def download_command(save, force, images):
     click.echo("Downloading Craigslist page for {n:d} listings.".format(n=n))
     if images:
         group = celery.group([celery.chain(
-                                          tasks.download.si(listing.id, save=save), 
+                                          tasks.download.si(listing.id), 
                                           tasks.download_images.si(listing.id, save=save, force=force)) 
                              for listing in q])
     else:

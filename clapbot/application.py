@@ -28,20 +28,24 @@ def make_celery(app):
 instance_dir = os.getcwd()
 if 'CLAPBOT_INSTANCE' in os.environ:
     instance_dir = os.path.abspath(os.path.expanduser(os.environ['CLAPBOT_INSTANCE']))
-if 'VIRTUAL_ENV' in os.environ:
+elif 'VIRTUAL_ENV' in os.environ:
     if os.path.isfile(os.path.join(os.environ['VIRTUAL_ENV'], '.project')):
         project_dir = os.path.abspath(os.path.expanduser(open(os.path.join(os.environ['VIRTUAL_ENV'], '.project')).read().strip('\r\n')))
         instance_candidate = os.path.join(project_dir, 'config', 'develop')
         if os.path.isdir(instance_candidate):
             instance_dir = os.path.join(project_dir, 'config', 'develop')
+    elif os.path.isdir('./config'):
+        instance_dir = os.path.abspath(os.path.join('config', 'develop'))
     
 
-
+print(f"Root configuration directory: {instance_dir}")
 app = Flask('clapbot', instance_path=instance_dir, instance_relative_config=True)
 del app.logger.handlers[:]
 app.logger.propogate = True
 app.config.from_object('clapbot.defaults')
+app.config.from_pyfile('clapbot.cfg', silent=True)
 app.config.from_envvar('CLAPBOT_SETTINGS')
+print(app.config)
 db = SQLAlchemy(app)
 mail = Mail(app)
 scss = Scss(app)

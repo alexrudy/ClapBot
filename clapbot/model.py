@@ -3,7 +3,10 @@
 import click
 import requests
 import base64
-import urllib.parse
+try:
+    import urlparse as urlparse
+except ImportError:
+    import urllib.parse as urlparse
 import datetime as dt
 from bs4 import BeautifulSoup
 
@@ -73,7 +76,7 @@ class Image(db.Model):
     def cl_id(self):
         """Craigslist identifier."""
         #: https://images.craigslist.org/00d0d_1qTvVaQpLrT_600x450.jpg
-        url = urllib.parse.urlsplit(self.url)
+        url = urlparse.urlsplit(self.url)
         return "_".join(url.path.lstrip("/").split("_")[:-1])
     
     def download(self):
@@ -87,7 +90,7 @@ class Image(db.Model):
     def thumbnail_url(self):
         """Try to guess a thumbnail URL"""
         #: https://images.craigslist.org/00d0d_1qTvVaQpLrT_600x450.jpg
-        url = urllib.parse.urlsplit(self.url)
+        url = urlparse.urlsplit(self.url)
         last_part = url.path.split("_")[-1]
         try:
             size = [int(part) for part in last_part.split("x")]
@@ -97,7 +100,7 @@ class Image(db.Model):
         else:
             scheme, netloc, path, query, fragment = url
             path = self.cl_id + "_50x50c.jpg"
-            return urllib.parse.urlunsplit(scheme, netloc, path, query, fragment)
+            return urlparse.urlunsplit(scheme, netloc, path, query, fragment)
 
 class Tag(db.Model):
     """A simple craigslist tag."""
