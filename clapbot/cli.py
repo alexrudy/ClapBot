@@ -42,10 +42,10 @@ def download_command(save, force, images):
     if images:
         group = celery.group([celery.chain(
                                           tasks.download.si(listing.id), 
-                                          tasks.download_images.si(listing.id, save=save, force=force)) 
+                                          tasks.download_images.si(listing.id, force=force)) 
                              for listing in q])
     else:
-        group = celery.group([tasks.download.si(listing.id, save=save) for listing in q])
+        group = celery.group([tasks.download.si(listing.id) for listing in q])
     result = group()
 
 @app.cli.command("score")
@@ -76,13 +76,13 @@ def scrape_command(limit, to_json=False):
         path = os.path.join(app.instance_path, app.config['CRAIGSLIST_CACHE_PATH'])
         scrape.scrape_to_json(path, limit=limit)
     else:
-        scrape.scrape(db.session, limit=limit)
+        scrape.scrape(db.session, limit=limit, save=True)
 
 @app.cli.command("ingest")
-@click.option("--path", default=app.config['CRAIGSLIST_CACHE_PATH'], type=click.Path(exists=True), help="Path to import entries to db.")
+@click.option("--path", default=app.config['CRAIGSLIST_CACHE_PATH'], type=click.Path(), help="Path to import entries to db.")
 def ingest_command(path):
     """Injest JSON files at the given path into the database."""
-    for filename in glob.iglob(os.path.join(path, '*.json')):
+    for filename in glob.iglob(os.path.join(path, '**', '*.json')):
         scrape.ingest_result(db.session, json.load(open(filename)))
     db.session.commit()
     

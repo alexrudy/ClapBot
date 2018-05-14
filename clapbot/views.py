@@ -11,10 +11,31 @@ from .model import Listing, Image, UserListingInfo
 
 from .tasks import notify
 
+import redis
+
+def check_db():
+    try:
+        db.session.query("1").from_statement("SELECT 1").all()
+        return True
+    except:
+        return False
+        
+def check_redis(url):
+    r = redis.StrictRedis.from_url(url)
+    try:
+        r.ping()
+    except:
+        return False
+    else:
+        return True
+
 @app.route('/healthcheck')
 def healthcheck():
     """Respond with a healthcheck"""
-    return jsonify({'time': dt.datetime.now().isoformat()})
+    info = {'time': dt.datetime.now().isoformat(), 'db': check_db()}
+    if app.config['CELERY_BROKER_URL'].startswith('redis://'):
+        info['redis'] = check_redis(app.config['CELERY_BROKER_URL'])
+    return jsonify(info)
 
 def login_required(f):
     @wraps(f)
@@ -52,7 +73,7 @@ def login():
 def latest():
     """Render the latest few as if they were to be emailed."""
     listings = Listing.query.order_by(Listing.created.desc()).limit(20)
-    listings = listings.from_self().join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+    listings = filter_rejected(listings)
     listings = listings.order_by(UserListingInfo.score.desc())
     return render_template("home.html", listings=listings)
 
@@ -60,9 +81,8 @@ def latest():
 @login_required
 def home():
     """Homepage"""
-    listings = Listing.query
-    listings = listings.order_by(Listing.created.desc())
-    listings = listings.from_self().join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+    listings = Listing.query.order_by(Listing.created.desc())
+    listings = filter_rejected(listings)
     listings = listings.order_by(UserListingInfo.score.desc())
     return render_template("home.html", listings=listings)
 
@@ -118,8 +138,7 @@ def thumbnail(identifier):
 @login_required
 def starred():
     """Starred lisitngs"""
-    listings = Listing.query.filter(Listing.transit_stop_id != None)
-    listings = listings.order_by(Listing.created.desc())
+    listings = Listing.query.order_by(Listing.created.desc())
     listings = listings.from_self().join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None), UserListingInfo.starred == True)
     listings = listings.order_by(UserListingInfo.score.desc())
     return render_template("home.html", listings=listings, title='Starred')

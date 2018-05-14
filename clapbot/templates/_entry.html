@@ -54,7 +54,7 @@
             {% endif %}
         </p>
         {% if listing.lat != None %}
-        <p>Berkeley: {{ '%.1f' | format(listing.distance_to(37.869867, -122.268045)) }}km</p>
+        <p>Work: {{ '%.1f' | format(listing.distance_to_work()) }}km</p>
         {% endif %}
     </td>
     <td>

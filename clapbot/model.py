@@ -3,11 +3,13 @@
 import click
 import requests
 import base64
+import datetime as dt
+from pathlib import Path
 try:
     import urlparse as urlparse
 except ImportError:
     import urllib.parse as urlparse
-import datetime as dt
+
 from bs4 import BeautifulSoup
 
 from sqlalchemy.orm import validates
@@ -175,6 +177,13 @@ class Listing(db.Model):
         return self.distance_to(self.transit_stop.lat, self.transit_stop.lon)
         
     @property
+    def cache_path(self):
+        """docstring for cache_path"""
+        path = Path(app.instance_path) / app.config['CRAIGSLIST_CACHE_PATH'] / 'listings' / '{}'.format(self.cl_id)[:3]
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+        
+    @property
     def score_info(self):
         """Return the score info for a listing."""
         from .score import score_info
@@ -183,6 +192,12 @@ class Listing(db.Model):
     def distance_to(self, lat, lon):
         """Distance to some position."""
         return coord_distance(self.lat, self.lon, lat, lon)
+        
+    def distance_to_work(self):
+        """Distance to work."""
+        lat = app.config['CRAIGSLIST_SCORE_WORK_LAT']
+        lon = app.config['CRAIGSLIST_SCORE_WORK_LON']
+        return self.distance_to(lat, lon)
     
     def __repr__(self):
         """Craigslist listing repr"""
@@ -297,7 +312,7 @@ class Listing(db.Model):
                     except ValueError:
                         app.logger.warning("Can't parse bedroom tag {0}.".format(attr.text), exc_info=True)
                     try:
-                        self.bathrooms = int(baths.lower().replace("ba","").strip())
+                        self.bathrooms = float(baths.lower().replace("ba","").strip())
                     except ValueError:
                         app.logger.warning("Can't parse bathroom tag {0}.".format(attr.text), exc_info=True)
                 elif not any(attr.text == tag.name for tag in self.tags):
