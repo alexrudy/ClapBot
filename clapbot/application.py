@@ -32,6 +32,10 @@ app.logger.propogate = True
 app.config.from_object('clapbot.defaults')
 if os.environ.get('CLAPBOT_SETTINGS', ''):
     app.config.from_envvar('CLAPBOT_SETTINGS')
+if os.environ.get('CLAPBOT_ENVIRON', ''):
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config', os.environ['CLAPBOT_ENVIRON'], 'clapbot.cfg'))
+    if os.path.exists(path):
+        app.config.from_pyfile(path)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 mail = Mail(app)
