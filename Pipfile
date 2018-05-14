@@ -16,6 +16,8 @@ Flask-SQLAlchemy = "*"
 Flask-Scss = "*"
 Flask-Mail = "*"
 Flask-Bcrypt = "*"
+Flask-Migrate = "*"
+flower = "*"
 
 [dev-packages]
 fabric3 = "*"

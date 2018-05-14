@@ -1,0 +1,87 @@
+version: '3.4'
+
+x-service-base: &base
+  build: &base_build
+    context: .
+    dockerfile: Dockerfile
+  environment: &base_environment
+    - CLAPBOT_SETTINGS
+
+services:
+  
+  # Postgres
+  db:
+    image: postgres
+    hostname: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=clapbot
+    ports:
+      - "5432:5432"
+  
+  # Redis
+  redis:
+    image: redis:2.8.19
+    hostname: redis
+  
+  # Flask base
+  flask.debug:
+    <<: *base
+    entrypoint: ./scripts/flask.sh
+    command: run --host='0.0.0.0'
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - celery.worker
+    links:
+      - db
+      - redis
+  
+  web:
+    <<: *base
+    command: ./scripts/nginx-start.sh
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - db
+      - celery.worker
+      - celery.beat
+    links:
+      - db
+      - redis
+  
+  # Celery worker base
+  celery.worker:
+    <<: *base
+    command: ./scripts/celery-worker.sh
+    links:
+      - db
+      - redis
+    depends_on:
+      - redis
+  
+  celery.beat:
+    <<: *base
+    command: ./scripts/celery-beat.sh
+    links:
+      - db
+      - redis
+    depends_on:
+      - redis
+  
+  # Celery flower
+  celery.flower:
+    <<: *base
+    command: ./scripts/celery-flower.sh
+    ports:
+      - "5555:5555"
+    links:
+      - db
+      - redis
+    depends_on:
+      - redis
