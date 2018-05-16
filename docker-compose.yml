@@ -1,11 +1,22 @@
 version: '3.4'
 
 x-service-base: &base
+  restart: unless-stopped
   build: &base_build
     context: .
     dockerfile: Dockerfile
   environment: &base_environment
     - CLAPBOT_SETTINGS
+    - CLAPBOT_ENVIRON
+  networks:
+    - back
+
+networks:
+  reverse-proxy:
+    external:
+      name: reverse-proxy
+  back:
+    driver: bridge
 
 services:
   
@@ -44,9 +55,12 @@ services:
   web:
     <<: *base
     command: ./scripts/nginx-start.sh
-    ports:
-      - "80:80"
-      - "443:443"
+    environment:
+      - CLAPBOT_ENVIRON
+      - VIRTUAL_PORT
+      - VIRTUAL_HOST
+      - LETSENCRYPT_HOST
+      - LETSENCRYPT_EMAIL
     depends_on:
       - db
       - celery.worker
@@ -54,6 +68,9 @@ services:
     links:
       - db
       - redis
+    networks:
+      - reverse-proxy
+      - back
   
   # Celery worker base
   celery.worker:

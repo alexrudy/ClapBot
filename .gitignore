@@ -98,7 +98,6 @@ ENV/
 /site
 
 # Configuration
-clapbot_config.py
 cldata/*
 
 config/*
