@@ -2,4 +2,5 @@
 if [ -n "$CLAPBOT_ENVIRON" -a -e "config/$CLAPBOT_ENVIRON/environ.sh" ]; then
     source "config/$CLAPBOT_ENVIRON/environ.sh"
 fi
+
 docker-compose -f docker-compose.yml $@

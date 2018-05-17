@@ -97,8 +97,11 @@ ENV/
 # mkdocs documentation
 /site
 
+# data
+data/pgdata/*
+data/cl/*
+
 # Configuration
-cldata/*
 
 config/*
 *.db

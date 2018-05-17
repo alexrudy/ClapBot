@@ -28,13 +28,20 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=clapbot
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/pgdata/:/var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
+    networks:
+      - back
   
   # Redis
   redis:
     image: redis:2.8.19
     hostname: redis
+    networks:
+      - back
   
   # Flask base
   flask.debug:
