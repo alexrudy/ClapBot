@@ -64,7 +64,7 @@ services:
     command: ./scripts/nginx-start.sh
     environment:
       - CLAPBOT_ENVIRON
-      - VIRTUAL_PORT
+      - VIRTUAL_PORT=8081
       - VIRTUAL_HOST
       - LETSENCRYPT_HOST
       - LETSENCRYPT_EMAIL
@@ -73,8 +73,8 @@ services:
       - celery.worker
       - celery.beat
     ports:
-      - "80:80"
-      - "443:443"
+      - "8081:80"
+      - "8843:443"
     links:
       - db
       - redis
