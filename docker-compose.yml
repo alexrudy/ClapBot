@@ -72,6 +72,9 @@ services:
       - db
       - celery.worker
       - celery.beat
+    ports:
+      - "80:80"
+      - "443:443"
     links:
       - db
       - redis
