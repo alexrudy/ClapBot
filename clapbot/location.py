@@ -31,6 +31,12 @@ def import_bounding_boxes(stream):
         db.session.add(bbox)
     db.session.commit()
     
+def export_bounding_boxes(stream):
+    """Export bounding boxes"""
+    writer = csv.writer(stream)
+    for bbox in BoundingBox.query:
+        writer.writerow([bbox.name, bbox.lon_min, bbox.lat_min, bbox.lon_max, bbox.lat_max])
+
 
 def check_inside_bboxes(listing):
     """Check that a listing is inside bboxes."""

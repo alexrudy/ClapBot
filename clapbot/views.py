@@ -7,8 +7,8 @@ from sqlalchemy import or_
 from flask import render_template, send_file, redirect, session, request, g, url_for, jsonify
 
 from .application import app, db, bcrypt
-from .model import Listing, Image, UserListingInfo
-
+from .model import Listing, Image, UserListingInfo, BoundingBox
+from . import location
 from .tasks import notify, scraper
 
 import redis
@@ -198,8 +198,25 @@ def listing(id):
         return redirect(url_for('listing', id=id))
     return render_template("single.html", listing=listing)
 
-@app.route("/listing/clid/<int:clid>/")
+@app.route("/bboxes/", methods=['POST'])
 @login_required
-def listing_cragislistid():
-    """View a listing by craigslist ID"""
-    pass
+def bboxes():
+    """Update the bounding boxes."""
+    if request.method == 'POST':
+        bboxes = io.StringIO(request.form.get('bboxes', ''))
+        BoundingBox.query.delete()
+        location.import_bounding_boxes(bboxes)
+    return redirect(url_for('settings'))
+    
+@app.route("/settings/")
+@login_required
+def settings():
+    """Settings view"""
+    email = app.config['MAIL_DEFAULT_RECIPIENTS']
+    craigslist = { key[len('CRAIGSLIST_'):]: value for key, value in app.config.items() if key.startswith('CRAIGSLIST_')}
+    scoring = { key.replace("CRAIGSLIST_", '').replace('SCORE_',''):value for key, value in app.config.items() if key.startswith('SCORE_') or key.startswith('CRAIGSLIST_SCORE_')}
+    
+    stream = io.StringIO()
+    location.export_bounding_boxes(stream)
+    
+    return render_template("settings.html", email=email, craigslist=craigslist, scoring=scoring, bboxes=stream.getvalue())

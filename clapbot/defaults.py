@@ -35,9 +35,5 @@ BCRYPT_HANDLE_LONG_PASSWORDS = True
 CLAPBOT_PASSWORD = 'clapbot'
 CLAPBOT_PASSWORD_TOKEN = 'open-sesame'
 
-SERVER_NAME = None
-CRAIGSLIST_CACHE_ENABLE = True
-CRAIGSLIST_CACHE_PATH = 'cldata'
-
 CRAIGSLIST_SEND_MAIL = False
 SECRET_KEY = b'@7\x93\r\xc1\xaf@vB\x88\xec\\\xd7\xc9\xafL\x9a\xd1\x01y\xd3\x03\xd5v'

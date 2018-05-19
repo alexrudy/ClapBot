@@ -1,0 +1,51 @@
+{% extends "index.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}ClApBot {{ title|default('Settings')}}{% endblock title %}
+{% block content %}
+<h1>ClapBot: Settings</h1>
+
+<div class='settings'>
+  <h2>Configuration</h2>
+  <table border="0" cellspacing="5" cellpadding="5">
+    <tr><th>Setting</th><th>Value</th></tr>
+    <tr><td>Email Recipients</td><td>{{ email|join(',') }}</td></tr>
+    <tr><td>Listings per email</td><td>{{ craigslist['MAX_MAIL'] }}</td></tr>
+    <tr><td>Email</td><td>{% if craigslist['SEND_MAIL'] -%}
+      Enabled
+    {%- else -%}Disabled 
+    {%- endif %}</td></tr>    
+  </table>
+  <h2>Craigslist Settings</h2>
+  <table border="0" cellspacing="5" cellpadding="5">
+    <tr><th>Setting</th><th>Value</th></tr>
+    <tr><td>Craigslist Site</td><td>{{ craigslist['SITE'] }}</td></tr>
+    <tr><td>Craigslist Area</td><td>{{ craigslist['AREA'] }}</td></tr>
+    <tr><td>Craigslist Category</td><td>{{ craigslist['CATEGORY'] }}</td></tr>
+    {% for f, v in craigslist['FILTERS'].items() %}
+    <tr><td>Craigslist {{ f|replace('_',' ')|title }}</td><td>{{ v }}</td></tr>
+    {% endfor %}
+    <tr><td>Craigslist Cache to File</td><td>{% if craigslist['CACHE_ENABLE'] -%}
+      Enabled
+    {%- else -%}Disabled 
+    {%- endif %}</td></tr>
+    <tr><td>Maximum listings to scrape</td><td>{{ craigslist['MAX_SCRAPE'] }}</td></tr>
+    
+  </table>
+  <h2>Bounding Boxes</h2>
+  {% if not craigslist['CHECK_BBOX'] %}<p>Location filtering is disabled.</p>{% endif %}
+  <form action="{{ url_for('bboxes') }}" method='POST'>
+    <p><textarea cols=120 rows=4 name='bboxes'>{{ bboxes }}</textarea></p>
+    <input type='submit' value="Update Bounding Boxes">
+ </form>
+  <h2>Scoring</h2>
+  <table border="0" cellspacing="5" cellpadding="5">
+    <tr><th>Setting</th><th>Value</th></tr>
+    <tr><td>Target Date</td><td>{{ scoring['TARGET_DATE'] }}</td></tr>
+    <tr><td>Consider Transit?</td><td>{% if scoring['TRANSIT'] -%}
+      Yes
+    {%- else -%}No 
+    {%- endif %}</td></tr>
+    <tr><td>Studio Penalty</td><td>{{ scoring['STUDIO_PENALTY'] }}</td></tr>
+  </table>
+</div>
+{% endblock content %}
