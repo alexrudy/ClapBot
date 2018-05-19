@@ -4,4 +4,5 @@ if [ -n "$CLAPBOT_ENVIRON" -a -d "config/$CLAPBOT_ENVIRON/" ]; then
 fi
 OVERRIDES="${OVERRIDES:-docker-compose.dev.yml}"
 
+echo "Using overrides from $OVERRIDES"
 docker-compose -f docker-compose.yml -f "$OVERRIDES" $@
