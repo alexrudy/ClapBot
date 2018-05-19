@@ -1,8 +1,16 @@
 #!/bin/bash
+
+if [ -d "config/$USER/" -a $(hostname) == 'sokka' ]; then
+  OVERRIDES="config/$USER/docker-compose.dev.yml"
+fi
+
 if [ -n "$CLAPBOT_ENVIRON" -a -d "config/$CLAPBOT_ENVIRON/" ]; then
   OVERRIDES="config/$CLAPBOT_ENVIRON/docker-compose.yml"
 fi
-OVERRIDES="${OVERRIDES:-docker-compose.dev.yml}"
+
+if [ ! -e "$OVERRIDES" ]; then
+  OVERRIDES="docker-compose.dev.yml"
+fi
 
 echo "Using overrides from $OVERRIDES"
 docker-compose -f docker-compose.yml -f "$OVERRIDES" $@
