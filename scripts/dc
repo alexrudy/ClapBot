@@ -1,6 +1,7 @@
 #!/bin/bash
-if [ -n "$CLAPBOT_ENVIRON" -a -e "config/$CLAPBOT_ENVIRON/environ.sh" ]; then
-    source "config/$CLAPBOT_ENVIRON/environ.sh"
+if [ -n "$CLAPBOT_ENVIRON" -a -d "config/$CLAPBOT_ENVIRON/" ]; then
+  OVERRIDES="config/$CLAPBOT_ENVIRON/docker-compose.yml"
 fi
+OVERRIDES="${OVERRIDES:-docker-compose.dev.yml}"
 
-docker-compose -f docker-compose.yml $@
+docker-compose -f docker-compose.yml -f "$OVERRIDES" $@

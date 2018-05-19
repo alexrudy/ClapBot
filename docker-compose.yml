@@ -61,7 +61,7 @@ services:
     command: ./scripts/nginx-start.sh
     environment:
       - CLAPBOT_ENVIRON
-      - VIRTUAL_PORT
+      - VIRTUAL_PORT=80
       - VIRTUAL_HOST
       - LETSENCRYPT_HOST
       - LETSENCRYPT_EMAIL
