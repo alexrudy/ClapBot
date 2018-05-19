@@ -9,13 +9,13 @@ x-service-base: &base
     - CLAPBOT_SETTINGS
     - CLAPBOT_ENVIRON
   networks:
-    - back
+    - backend
 
 networks:
   reverse-proxy:
     external:
       name: reverse-proxy
-  back:
+  backend:
     driver: bridge
 
 services:
@@ -34,14 +34,14 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - back
+      - backend
   
   # Redis
   redis:
     image: redis:2.8.19
     hostname: redis
     networks:
-      - back
+      - backend
   
   # Flask base
   flask.debug:
@@ -55,9 +55,6 @@ services:
     depends_on:
       - db
       - celery.worker
-    links:
-      - db
-      - redis
   
   web:
     <<: *base
@@ -74,7 +71,7 @@ services:
       - celery.beat
     networks:
       - reverse-proxy
-      - back
+      - backend
   
   # Celery worker base
   celery.worker:
