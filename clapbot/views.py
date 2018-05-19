@@ -134,7 +134,7 @@ def image(identifier):
 def thumbnail(identifier):
     """docstring for thumbnail"""
     img = Image.query.get_or_404(identifier)
-    if img.thumbnail is not None:
+    if img.thumbnail is not None and len(img.thumbnail):
         return send_file(io.BytesIO(img.thumbnail), mimetype='image/jpeg')
     else:
         return redirect(img.thumbnail_url)

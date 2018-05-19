@@ -85,15 +85,16 @@ class Image(db.Model):
         """Download images."""
         response = requests.get(self.url)
         self.full = response.content
-        response = requests.get(self.thumbnail_url)
-        self.thumbnail = response.content
+        if self.thumbnail_url != self.url:
+            response = requests.get(self.thumbnail_url)
+            self.thumbnail = response.content
     
     @property
     def thumbnail_url(self):
         """Try to guess a thumbnail URL"""
         #: https://images.craigslist.org/00d0d_1qTvVaQpLrT_600x450.jpg
         url = urlparse.urlsplit(self.url)
-        last_part = url.path.split("_")[-1]
+        last_part, ext = url.path.split("_")[-1].split(".")
         try:
             size = [int(part) for part in last_part.split("x")]
         except ValueError:
