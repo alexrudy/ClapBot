@@ -7,3 +7,7 @@ services:
       - CLAPBOT_ENVIRON=dev
       - VIRTUAL_PORT=80
       - VIRTUAL_HOST=clapbot.local
+  
+  flask.debug:
+    environment:
+      - FLASK_DEBUG=True
