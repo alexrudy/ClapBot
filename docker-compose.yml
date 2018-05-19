@@ -64,7 +64,7 @@ services:
     command: ./scripts/nginx-start.sh
     environment:
       - CLAPBOT_ENVIRON
-      - VIRTUAL_PORT=8081
+      - VIRTUAL_PORT
       - VIRTUAL_HOST
       - LETSENCRYPT_HOST
       - LETSENCRYPT_EMAIL
@@ -72,12 +72,6 @@ services:
       - db
       - celery.worker
       - celery.beat
-    ports:
-      - "8081:80"
-      - "8843:443"
-    links:
-      - db
-      - redis
     networks:
       - reverse-proxy
       - back
@@ -86,18 +80,12 @@ services:
   celery.worker:
     <<: *base
     command: ./scripts/celery-worker.sh
-    links:
-      - db
-      - redis
     depends_on:
       - redis
   
   celery.beat:
     <<: *base
     command: ./scripts/celery-beat.sh
-    links:
-      - db
-      - redis
     depends_on:
       - redis
   
@@ -107,8 +95,5 @@ services:
     command: ./scripts/celery-flower.sh
     ports:
       - "5555:5555"
-    links:
-      - db
-      - redis
     depends_on:
       - redis
