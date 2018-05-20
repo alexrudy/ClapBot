@@ -11,3 +11,7 @@ services:
   flask.debug:
     environment:
       - FLASK_DEBUG=True
+  
+  celery.flower:
+    ports:
+      - "5555:5555"

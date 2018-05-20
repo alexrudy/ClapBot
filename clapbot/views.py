@@ -16,9 +16,10 @@ import redis
 def check_db():
     try:
         db.session.query("1").from_statement("SELECT 1").all()
-        return True
     except:
         return False
+    else:
+        return True
         
 def check_redis(url):
     r = redis.StrictRedis.from_url(url)

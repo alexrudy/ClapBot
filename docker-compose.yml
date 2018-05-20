@@ -90,7 +90,5 @@ services:
   celery.flower:
     <<: *base
     command: ./scripts/celery-flower.sh
-    ports:
-      - "5555:5555"
     depends_on:
       - redis
