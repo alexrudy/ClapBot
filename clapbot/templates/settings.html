@@ -25,8 +25,7 @@
     <tr><td>Craigslist {{ f|replace('_',' ')|title }}</td><td>{{ v }}</td></tr>
     {% endfor %}
     <tr><td>Craigslist Cache to File</td><td>{% if craigslist['CACHE_ENABLE'] -%}
-      Enabled
-    {%- else -%}Disabled 
+    {{ craigslist['CACHE_PATH'] }}   {%- else -%}Disabled 
     {%- endif %}</td></tr>
     <tr><td>Maximum listings to scrape</td><td>{{ craigslist['MAX_SCRAPE'] }}</td></tr>
     
