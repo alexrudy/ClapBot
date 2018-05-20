@@ -103,7 +103,7 @@ class Image(db.Model):
         else:
             scheme, netloc, path, query, fragment = url
             path = self.cl_id + "_50x50c.jpg"
-            return urlparse.urlunsplit(scheme, netloc, path, query, fragment)
+            return urlparse.urlunsplit((scheme, netloc, path, query, fragment))
 
 class Tag(db.Model):
     """A simple craigslist tag."""
