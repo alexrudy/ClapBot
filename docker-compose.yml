@@ -90,5 +90,7 @@ services:
   celery.flower:
     <<: *base
     command: ./scripts/celery-flower.sh
+    expose:
+      - "5555"
     depends_on:
       - redis
