@@ -183,7 +183,7 @@ class Listing(db.Model):
     @property
     def cache_path(self):
         """docstring for cache_path"""
-        path = Path(app.instance_path) / app.config['CRAIGSLIST_CACHE_PATH'] / 'listings' / '{}'.format(self.cl_id)[:3]
+        path = Path(app.config['CRAIGSLIST_CACHE_PATH']) / 'listings' / '{}'.format(self.cl_id)[:3]
         path.mkdir(parents=True, exist_ok=True)
         return path
         
