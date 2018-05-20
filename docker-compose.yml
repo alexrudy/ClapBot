@@ -8,6 +8,8 @@ x-service-base: &base
   environment: &base_environment
     - CLAPBOT_SETTINGS
     - CLAPBOT_ENVIRON
+  volumes:
+    - ./data/:/app/data/
   networks:
     - backend
 
