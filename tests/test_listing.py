@@ -38,7 +38,9 @@ def test_listing_from_json(app, listing_json):
     
 def test_listing_parse_html(app, listing, listing_html):
     """Test parsing HTML for listings"""
-    with app.app_context():    
+    with app.app_context():
+        assert listing.bedrooms == None
+        assert listing.bathrooms == None 
         listing.parse_html(listing_html)
         assert listing.bedrooms == 1
         assert listing.bathrooms == 1
