@@ -41,6 +41,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.pytest_cache/
 nosetests.xml
 coverage.xml
 *,cover
@@ -96,6 +97,11 @@ ENV/
 
 # mkdocs documentation
 /site
+
+# Celery
+celerybeat.pid
+var/
+run/
 
 # data
 data/pgdata/*
