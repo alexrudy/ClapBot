@@ -20,12 +20,9 @@ Flask-Migrate = "*"
 flower = "*"
 
 [dev-packages]
-fabric3 = "*"
-tmuxp = "*"
-
-[test-packages]
 pytest = "*"
 coverage = "*"
+httmock = "*"
 
 [requires]
 python_version = "3.6"
