@@ -85,11 +85,11 @@ class Image(db.Model):
         """Download images."""
         response = requests.get(self.url)
         self.full = response.content
-        app.logger.info("Downloaded full size image for {}".format(self.url))        
+        app.logger.info("Downloaded full size image from {}".format(self.url))        
         if self.thumbnail_url != self.url:
             response = requests.get(self.thumbnail_url)
             self.thumbnail = response.content
-            app.logger.info("Downloaded thumbnail image for {}".format(self.url))        
+            app.logger.info("Downloaded thumbnail image from {}".format(self.thumbnail_url))        
             
     
     @property
