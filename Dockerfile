@@ -35,6 +35,11 @@ WORKDIR /app
 COPY scripts/nginx-entrypoint.sh /app/scripts/nginx-entrypoint.sh
 RUN chmod +x /app/scripts/nginx-entrypoint.sh
 
+# Copy the entrypoint that will generate Nginx additional configs
+COPY scripts/nginx-entrypoint.sh /app/scripts/entrypoint.sh
+RUN chmod +x /app/scripts/entrypoint.sh
+
+
 
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
@@ -44,5 +49,5 @@ RUN pipenv install --deploy --system
 
 COPY . /app
 
-ENTRYPOINT ["scripts/nginx-entrypoint.sh"]
+ENTRYPOINT ["scripts/entrypoint.sh"]
 CMD ["scripts/nginx-start.sh"]

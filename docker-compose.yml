@@ -19,6 +19,8 @@ networks:
       name: reverse-proxy
   backend:
     driver: bridge
+  test:
+    internal: true
 
 services:
   
@@ -67,8 +69,20 @@ services:
       - db
       - celery.worker
   
+  flask.test:
+    <<: *base
+    build:
+      <<: *base_build
+      dockerfile: Dockerfile.test
+    command: pytest
+    networks:
+      - test
+    volumes:
+      - .:/app
+  
   web:
     <<: *base
+    entrypoint: ./scripts/nginx-entrypoint.sh
     command: ./scripts/nginx-start.sh
     environment:
       - CLAPBOT_ENVIRON

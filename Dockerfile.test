@@ -1,0 +1,29 @@
+FROM python:3.6
+
+RUN apt-get update -y
+RUN pip install pipenv
+
+ENV FLASK_APP=clapbot
+
+RUN mkdir -p /app
+WORKDIR /app
+
+# Copy the entrypoint that will generate Nginx additional configs
+COPY scripts/nginx-entrypoint.sh /app/scripts/nginx-entrypoint.sh
+RUN chmod +x /app/scripts/nginx-entrypoint.sh
+
+# Copy the entrypoint that will generate Nginx additional configs
+COPY scripts/nginx-entrypoint.sh /app/scripts/entrypoint.sh
+RUN chmod +x /app/scripts/entrypoint.sh
+
+
+COPY Pipfile Pipfile
+COPY Pipfile.lock Pipfile.lock
+
+# -- Install dependencies:
+RUN pipenv install --deploy --dev --system
+
+COPY . /app
+
+ENTRYPOINT ["scripts/entrypoint.sh"]
+CMD ["scripts/nginx-start.sh"]

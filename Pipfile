@@ -22,6 +22,8 @@ flower = "*"
 [dev-packages]
 fabric3 = "*"
 tmuxp = "*"
+pytest = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.6"
