@@ -21,9 +21,11 @@ COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
 
 # -- Install dependencies:
-RUN pipenv install --deploy --dev --system
+RUN pipenv install --deploy --system
 
 COPY . /app
 
+RUN pip install tox
+
 ENTRYPOINT ["scripts/entrypoint.sh"]
-CMD ["scripts/nginx-start.sh"]
+CMD ["tox"]

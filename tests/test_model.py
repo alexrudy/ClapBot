@@ -21,7 +21,7 @@ def listing_html():
         return f.read()
     
 @pytest.fixture
-def listing():
+def listing(app):
     """Return an example listing"""
     return Listing(cl_id=6098474009,
             url='http://sfbay.craigslist.org/eby/apa/6098474009.html',
@@ -31,13 +31,15 @@ def listing():
             price='$1590',
             location='pittsburg / antioch')
     
-def test_listing_from_json(listing_json):
+def test_listing_from_json(app, listing_json):
     """Test making a listing from JSON"""
-    listing = Listing.from_result(listing_json)
+    with app.app_context():
+        listing = Listing.from_result(listing_json)
     
-def test_listing_parse_html(listing, listing_html):
+def test_listing_parse_html(app, listing, listing_html):
     """Test parsing HTML for listings"""
-    listing.parse_html(listing_html)
-    assert listing.bedrooms == 1
-    assert listing.bathrooms == 1
-    assert len(listing.images) == 1
+    with app.app_context():    
+        listing.parse_html(listing_html)
+        assert listing.bedrooms == 1
+        assert listing.bathrooms == 1
+        assert len(listing.images) == 1

@@ -10,6 +10,7 @@ x-service-base: &base
     - CLAPBOT_ENVIRON
   volumes:
     - ./data/:/app/data/
+    - ./config/:/app/config/
   networks:
     - backend
 
@@ -20,7 +21,7 @@ networks:
   backend:
     driver: bridge
   test:
-    internal: true
+    driver: bridge
 
 services:
   
@@ -74,7 +75,8 @@ services:
     build:
       <<: *base_build
       dockerfile: Dockerfile.test
-    command: pytest
+    environment:
+      - CLAPBOT_ENVIRON=test
     networks:
       - test
     volumes:
