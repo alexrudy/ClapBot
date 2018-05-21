@@ -48,10 +48,13 @@ services:
     <<: *base
     entrypoint: ./scripts/flask.sh
     command: run --host='0.0.0.0'
+    networks:
+      - reverse-proxy
+      - backend
     volumes:
       - .:/app
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     depends_on:
       - db
       - celery.worker
@@ -90,6 +93,9 @@ services:
   celery.flower:
     <<: *base
     command: ./scripts/celery-flower.sh
+    networks:
+      - backend
+      - reverse-proxy
     expose:
       - "5555"
     depends_on:
