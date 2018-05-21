@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9eb7cafb43509254b48a431c4c4acf3c4abaaaa9f2fe90768953181871e4b669"
+            "sha256": "c2cfddeca41005b1a5f07f8b0b4705d9d3104b1734f019cf3661c0126833e138"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -158,6 +158,10 @@
                 "sha256:f15516df478d5a56180fbf80e68f206010e6d160fc39fa508b65e035fd75130b"
             ],
             "version": "==6.7"
+        },
+        "e1839a8": {
+            "editable": true,
+            "path": "."
         },
         "flask": {
             "hashes": [

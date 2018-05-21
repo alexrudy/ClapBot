@@ -18,6 +18,7 @@ Flask-Mail = "*"
 Flask-Bcrypt = "*"
 Flask-Migrate = "*"
 flower = "*"
+"e1839a8" = {path = ".", editable = true}
 
 [dev-packages]
 fabric3 = "*"
