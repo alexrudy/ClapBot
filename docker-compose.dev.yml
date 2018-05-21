@@ -4,7 +4,7 @@ services:
   
   db:
     environment:
-      - POSTGRES_DB=clapbot-dev
+      - POSTGRES_DB=clapbotdev
   
   web:
     volumes:

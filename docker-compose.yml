@@ -36,6 +36,14 @@ services:
     networks:
       - backend
   
+  db-psql:
+    image: postgres
+    command: ['psql', '-h', 'db', '-U', 'postgres']
+    environment:
+      - PG_PASSWORD=postgres
+    networks:
+      - backend
+  
   # Redis
   redis:
     image: redis:2.8.19
