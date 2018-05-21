@@ -1,0 +1,33 @@
+version: '3.4'
+
+services:
+  
+  web:
+    environment:
+      - CLAPBOT_ENVIRON=example
+      - VIRTUAL_HOST=clapbot.example.com
+      - LETSENCRYPT_HOST=clapbot.example.com
+      - LETSENCRYPT_EMAIL=me@.example.com
+  
+  celery.worker:
+    environment:
+      - CLAPBOT_ENVIRON=example
+  
+  celery.beat:
+    environment:
+      - CLAPBOT_ENVIRON=example
+  
+  flask.debug:
+    environment:
+      - VIRTUAL_HOST=dev.clapbot.example.com
+      - VIRTUAL_PORT=5000
+      - CLAPBOT_ENVIRON=example
+  
+  celery.flower:
+    environment:
+      - CLAPBOT_ENVIRON=example
+      - VIRTUAL_HOST=flower.clapbot.example.com
+      - VIRTUAL_PORT=5555
+      - LETSENCRYPT_HOST=flower.clapbot.example.com
+      - LETSENCRYPT_HOST=clapbot.example.com
+      - LETSENCRYPT_EMAIL=me@.example.com
