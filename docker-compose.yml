@@ -78,9 +78,11 @@ services:
     environment:
       - CLAPBOT_ENVIRON=test
     networks:
-      - test
+      - backend
     volumes:
       - .:/app
+    depends_on:
+      - redis
   
   web:
     <<: *base

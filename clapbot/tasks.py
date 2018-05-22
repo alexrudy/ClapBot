@@ -10,6 +10,7 @@ from . import scrape
 from . import location
 from .notify import send_notification
 from .score import score_all
+from .cl import tasks
 
 def instrument_listing(listing_id):
     """Instrument everything necessary for a given listing."""

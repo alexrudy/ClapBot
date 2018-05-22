@@ -34,9 +34,13 @@ services:
       - VIRTUAL_PORT=5555
   
   celery.worker:
+    environment:
+      - CLAPBOT_ENVIRON=dev
     volumes:
       - .:/app
   
   celery.beat:
+    environment:
+      - CLAPBOT_ENVIRON=dev
     volumes:
       - .:/app

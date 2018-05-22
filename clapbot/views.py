@@ -9,7 +9,8 @@ from flask import render_template, send_file, redirect, session, request, g, url
 from .application import app, db, bcrypt
 from .model import Listing, Image, UserListingInfo, BoundingBox
 from . import location
-from .tasks import notify, scraper
+from .tasks import notify
+from .cl.tasks import scrape
 
 import redis
 
@@ -55,9 +56,9 @@ def mailer():
 
 @app.route("/scrape")
 @login_required
-def scrape():
+def scraper():
     """Scrape craigslist now!"""
-    scraper.delay()
+    scrape.delay()
     return redirect(url_for('home'))
 
 @app.route('/logout')
