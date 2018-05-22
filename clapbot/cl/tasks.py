@@ -1,12 +1,16 @@
 import random
+import json
 from pathlib import Path
 from functools import wraps
 
 import requests
+
+from flask import current_app as app
+
 from celery.utils.log import get_task_logger
 from celery.canvas import group
 
-from ..core import app, celery, db
+from ..core import celery, db
 from .model import Listing, Image
 from .scrape import iter_scraped_results
 
@@ -95,9 +99,9 @@ def ingest_listing(listing_json, force=False):
     save = app.config['CRAIGSLIST_CACHE_ENABLE']
     if listing is None:
         listing = Listing.from_result(listing_json)
-    
-    if save and not listing.cache_path.exists():
-        with (listing.cache_path / '{}.json'.format(listing_json['id'])).open('w') as f:
+    path = (listing.cache_path / '{}.json'.format(listing_json['id']))
+    if save and not path.exists():
+        with path.open('w') as f:
             json.dump(listing_json, f)
     db.session.add(listing)
     app.logger.info("Added Craigslist entry for {0}".format(listing.cl_id))
@@ -105,12 +109,42 @@ def ingest_listing(listing_json, force=False):
     return listing.id
 
 def new_listing_pipeline(listing_json, force=False):
+    """Task pipeline to transform new listing JSON into a listing record and associated images."""
     return (ingest_listing.s(listing_json, force=force) | 
             download_listing.s(force=force).set(countdown=int(random.uniform(0, 120))) | 
             download_images_for_listing.s(force=force))
 
 @celery.task
-def scrape(limit=20, force=False):
+def scrape(limit=None, force=False):
     """Scrape listings from craigslist, and ingest them properly."""
+    limit = limit if limit is not None else app.config['CRAIGSLIST_MAX_SCRAPE']
     g = group([new_listing_pipeline(result, force=force) for result in iter_scraped_results(app, limit=limit)])
     return g.delay()
+
+@celery.task
+def export_listing(listing_id, force=False):
+    """Dump this listing to disk if needed."""
+    listing = Listing.query.get(listing_id)
+    save = app.config['CRAIGSLIST_CACHE_ENABLE']
+    path = (listing.cache_path / '{}.json'.format(listing.cl_id))
+    if save and ((not path.exists()) or force):
+        logger.info(f"Saving {listing} to cacehd file.")
+        with path.open('w') as f:
+            json.dump(listing.to_json(), f)
+    return listing_id
+
+@celery.task
+def export_listings(force=False):
+    """Ensure listing infor is saved to disk."""
+    exporters = export_listing.si(force=force).chunks((listing.id for listing in Listing.query), 100).group()
+    return exporters.delay()
+
+@celery.task
+def ensure_downloaded(force=False):
+    """Ensure that listings and images are downloaded to disk."""
+    
+    # Can't filter on text==None here because we want to download images as well.
+    listings = Listing.query
+
+    downloaders = group([(download_listing.s(listing.id, force=force) | download_images_for_listing.s(force=force)) for listing in listings])
+    return downloaders.skew(start=1, stop=120).delay()

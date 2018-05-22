@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from clapbot import app as _app, db
+from clapbot import app as _app, db, celery
 
 
 @pytest.fixture
@@ -12,6 +12,7 @@ def app(tmpdir):
     path = Path(tmpdir) / 'data' / 'cl'
     path.mkdir(parents=True, exist_ok=True)
     _app.config['CRAIGSLIST_CACHE_PATH'] = str(path)
+    _app.config['CRAIGSLIST_CACHE_ENABLE'] = True
     yield _app
 
 @pytest.fixture

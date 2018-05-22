@@ -20,8 +20,6 @@ networks:
       name: reverse-proxy
   backend:
     driver: bridge
-  test:
-    driver: bridge
 
 services:
   

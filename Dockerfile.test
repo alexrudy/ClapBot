@@ -8,13 +8,10 @@ ENV FLASK_APP=clapbot
 RUN mkdir -p /app
 WORKDIR /app
 
-# Copy the entrypoint that will generate Nginx additional configs
-COPY scripts/nginx-entrypoint.sh /app/scripts/nginx-entrypoint.sh
-RUN chmod +x /app/scripts/nginx-entrypoint.sh
 
 # Copy the entrypoint that will generate Nginx additional configs
-COPY scripts/nginx-entrypoint.sh /app/scripts/entrypoint.sh
-RUN chmod +x /app/scripts/entrypoint.sh
+COPY services/ /app/services/
+RUN chmod -R +x /app/services
 
 
 COPY Pipfile Pipfile
@@ -27,5 +24,5 @@ COPY . /app
 
 RUN pip install tox
 
-ENTRYPOINT ["scripts/entrypoint.sh"]
+ENTRYPOINT ["services/entrypoint-test.sh"]
 CMD ["tox"]

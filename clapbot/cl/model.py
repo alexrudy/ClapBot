@@ -3,6 +3,8 @@ import datetime as dt
 import urllib.parse
 from pathlib import Path
 
+from flask import current_app as app
+
 from bs4 import BeautifulSoup
 
 from sqlalchemy.orm import validates
@@ -10,8 +12,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import BigInteger
 
 from ..utils import coord_distance
-
-from ..core import db, app
+from ..core import db
 
 __all__ = ['images', 'tags', 'Image', 'Listing', 'Tag']
 
@@ -215,18 +216,26 @@ class Listing(db.Model):
         db.session.add(tag)
         return tag
     
+    def to_json(self):
+        """Return the JSON-compatible structure which could create this object."""
+        result = {'id':str(self.cl_id), 'datetime': self.created.strftime('%Y-%m-%d %H:%M'), 
+                  'where':self.location, 'url': self.url,
+                  'price':f"${self.price:.0f}", 'name':self.name, 'geotag':[self.lat, self.lon]}
+        return result
+
     @classmethod
     def from_result(cls, result):
         """Construct this object from a result."""
-        if result.get('geotag', None) is not None:
-            result['lat'], result['lon'] = result['geotag']
-        result['cl_id'] = result.pop('id')
-        result['created'] = result.pop('datetime')
-        result['location'] = result.pop('where')
-        for key in list(result.keys()):
+        kwargs = dict(**result)
+        if kwargs.get('geotag', None) is not None:
+            kwargs['lat'], kwargs['lon'] = result['geotag']
+        kwargs['cl_id'] = kwargs.pop('id')
+        kwargs['created'] = kwargs.pop('datetime')
+        kwargs['location'] = kwargs.pop('where')
+        for key in list(kwargs.keys()):
             if not hasattr(cls, key):
-                del result[key]
-        return cls(**result)
+                del kwargs[key]
+        return cls(**kwargs)
     
     def parse_html(self, content):
         """Parse HTML content from a CL page."""

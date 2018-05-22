@@ -1,1 +1,14 @@
-{"id": "6095797875", "name": "2 Bed - 2 Bath, Open House is this weekend! $2000 off specials!", "url": "http://sfbay.craigslist.org/eby/apa/6095797875.html", "datetime": "2017-04-22 09:26", "price": "$3029", "where": "6250 Stoneridge Mall Road, Pleasanton, CA 94588", "has_image": true, "has_map": true, "geotag": [37.6936, -121.9228]}
+{
+    "id": "6095797875",
+    "name": "2 Bed - 2 Bath, Open House is this weekend! $2000 off specials!",
+    "url": "http://sfbay.craigslist.org/eby/apa/6095797875.html",
+    "datetime": "2017-04-22 09:26",
+    "price": "$3029",
+    "where": "6250 Stoneridge Mall Road, Pleasanton, CA 94588",
+    "has_image": true,
+    "has_map": true,
+    "geotag": [
+        37.6936,
+        -121.9228
+    ]
+}
