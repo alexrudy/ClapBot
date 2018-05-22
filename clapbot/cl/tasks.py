@@ -23,6 +23,7 @@ class RequestsTask(celery.Task):
         except requests.Timeout as exc:
             if self.request.retries > app.config.get("REQUESTS_MAX_RETRIES", 5):
                 self.retry(exc=exc, countdown=int(random.uniform(2, 4) ** self.request.retries))
+            raise
 
 def requests_retry_task(**kwargs):
     """Ensure that retries for requests timeouts are properly handled."""
