@@ -111,3 +111,4 @@ data/cl/*
 
 config/*
 *.db
+.vscode/*
