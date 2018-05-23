@@ -132,6 +132,8 @@ def test_listing_download(app, craigslist, listing_id):
 
 def test_image_download(app, craigslist_image, image_id):
     with app.app_context():
+        img = db.session.query(model.Image).get(image_id)
+        assert img.full is None
         tasks.download_image(image_id)
-        img = model.Image.query.get(image_id)
+        img = db.session.query(model.Image).get(image_id)
         assert img.full is not None
