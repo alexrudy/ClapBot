@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-SERVICE=${1:-flask}
-if [ $# -gt 1 ]; then
-    shift
-fi
-
-if (dc run --rm "${SERVICE}.test" tox $@); then
+if (dc run --rm "flask.test" tox $@); then
     RESULT=$?
 else
     RESULT=$?
