@@ -26,6 +26,7 @@ coverage = "*"
 httmock = "*"
 pylint = "*"
 rope = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.6"
