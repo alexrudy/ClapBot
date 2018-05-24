@@ -141,7 +141,7 @@ def export_listing(listing_id, force=False):
 @celery.task
 def export_listings(force=False):
     """Ensure listing infor is saved to disk."""
-    exporters = group(export_listing.s(listing.id, force=force) for listing in Listing.query)
+    exporters = group([export_listing.s(listing.id, force=force) for listing in Listing.query])
     result = exporters.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
     result.save()
     return result
@@ -156,5 +156,4 @@ def ensure_downloaded(force=False):
     downloaders = group([(download_listing.si(listing.id, force=force) | download_images_for_listing.s(force=force)) for listing in listings])
     result = downloaders.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
     result.save()
-    print(result)
     return result
