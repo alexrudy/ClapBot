@@ -20,6 +20,9 @@ COPY Pipfile.lock Pipfile.lock
 # -- Install dependencies:
 RUN pipenv install --deploy --system
 
+# -- Create the virtualenv that pipenv will use.
+RUN pipenv install --dev
+
 COPY . /app
 
 RUN pip install tox

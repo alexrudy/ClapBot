@@ -11,7 +11,7 @@ import logging
 import socket
 from pathlib import Path
 
-logging.basicConfig(format='--> %(levelname)-8s: %(message)s', level=logging.DEBUG)
+# logging.basicConfig(format='--> %(levelname)-8s: %(message)s', level=logging.DEBUG)
 
 def make_celery(app):
     celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'],

@@ -8,7 +8,7 @@ import requests
 from flask import current_app as app
 
 from celery.utils.log import get_task_logger
-from celery.canvas import group
+from celery.canvas import group, chunks
 
 from ..core import celery, db
 from .model import Listing, Image
@@ -67,8 +67,10 @@ def download_images_for_listing(listing_id, force=False):
     """Return the image ids for image fetching"""
     listing = Listing.query.get(listing_id)
     image_ids = [image.id for image in listing.images if (image.full is None or image.thumbnail is None) or force]
-    image_group = group([download_image.si(img_id, force=force).set(countdown=int(random.uniform(0, 120))) for img_id in image_ids])
-    return image_group.delay()
+    image_group = group([download_image.si(img_id, force=force).set(countdown=int(random.uniform(0, app.config['CRAIGSLIST_TASK_SKEW']))) for img_id in image_ids])
+    result = image_group.delay()
+    result.save()
+    return result
 
 @requests_retry_task()
 def download_image(image_id, force=False):
@@ -85,7 +87,8 @@ def download_image(image_id, force=False):
         path = image.cache_path / f"{image.cl_id}.thumbnail.jpg"
         content = get_cached_url(image.thumbnail_url, path, save=save, description=f"image (thumbnail) {image.cl_id}")
         image.thumbnail = content
-
+    
+    db.session.add(image)
     db.session.commit()
     return image_id
 
@@ -111,7 +114,7 @@ def ingest_listing(listing_json, force=False):
 def new_listing_pipeline(listing_json, force=False):
     """Task pipeline to transform new listing JSON into a listing record and associated images."""
     return (ingest_listing.s(listing_json, force=force) | 
-            download_listing.s(force=force).set(countdown=int(random.uniform(0, 120))) | 
+            download_listing.s(force=force).set(countdown=int(random.uniform(0, app.config['CRAIGSLIST_TASK_SKEW']))) | 
             download_images_for_listing.s(force=force))
 
 @celery.task
@@ -119,7 +122,9 @@ def scrape(limit=None, force=False):
     """Scrape listings from craigslist, and ingest them properly."""
     limit = limit if limit is not None else app.config['CRAIGSLIST_MAX_SCRAPE']
     g = group([new_listing_pipeline(result, force=force) for result in iter_scraped_results(app, limit=limit)])
-    return g.delay()
+    result = g.delay()
+    result.save()
+    return result
 
 @celery.task
 def export_listing(listing_id, force=False):
@@ -136,8 +141,10 @@ def export_listing(listing_id, force=False):
 @celery.task
 def export_listings(force=False):
     """Ensure listing infor is saved to disk."""
-    exporters = export_listing.si(force=force).chunks((listing.id for listing in Listing.query), 100).group()
-    return exporters.delay()
+    exporters = group(export_listing.s(listing.id, force=force) for listing in Listing.query)
+    result = exporters.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
+    result.save()
+    return result
 
 @celery.task
 def ensure_downloaded(force=False):
@@ -146,5 +153,8 @@ def ensure_downloaded(force=False):
     # Can't filter on text==None here because we want to download images as well.
     listings = Listing.query
 
-    downloaders = group([(download_listing.s(listing.id, force=force) | download_images_for_listing.s(force=force)) for listing in listings])
-    return downloaders.skew(start=1, stop=120).delay()
+    downloaders = group([(download_listing.si(listing.id, force=force) | download_images_for_listing.s(force=force)) for listing in listings])
+    result = downloaders.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
+    result.save()
+    print(result)
+    return result
