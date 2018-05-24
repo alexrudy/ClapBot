@@ -59,7 +59,7 @@ def test_download_chain(app, celery_app, celery_worker, celery_timeout, craigsli
         group = tasks.new_listing_pipeline(listing_json)
         
     result = group.delay().get(timeout=celery_timeout)
-    GroupResult.restore(result[0], app=celery_app).get(timeout=celery_timeout)
+    GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
     
     with app.app_context():
 
@@ -75,9 +75,47 @@ def test_download_chain(app, celery_app, celery_worker, celery_timeout, craigsli
 
 def test_export_all(app, celery_app, celery_worker, celery_timeout, listing, listing_json):
     
-    r = tasks.export_listings.delay().get(timeout=celery_timeout)
-    GroupResult.restore(r[0], app=celery_app).get(timeout=celery_timeout)
+    result = tasks.export_listings.delay().get(timeout=celery_timeout)
+    GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
 
     with app.app_context():
         cache_path = model.Listing.query.get(listing).cache_path
     assert_cache_json(cache_path, listing_json)
+
+def test_ensure_download(app, celery_app, celery_worker, celery_timeout, craigslist, listing):
+    
+    result = tasks.ensure_downloaded.s(listing).delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
+    for result in results:
+        GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
+    
+    with app.app_context():
+
+        listing = model.Listing.query.first()
+        assert listing.bedrooms == 1
+        assert listing.bathrooms == 1
+        assert len(listing.images) == 1
+        assert listing.text
+        assert len(listing.tags) == 5
+
+        img = model.Image.query.first()
+        assert img.full is not None
+
+def test_scrape(app, craigslist, celery_app, celery_worker, celery_timeout):
+    
+    result = tasks.scrape.delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
+    for result in results:
+        GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
+    
+    with app.app_context():
+
+        listing = model.Listing.query.first()
+        assert listing.bedrooms == 1
+        assert listing.bathrooms == 1
+        assert len(listing.images) == 1
+        assert listing.text
+        assert len(listing.tags) == 5
+
+        img = model.Image.query.first()
+        assert img.full is not None

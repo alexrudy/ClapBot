@@ -12,7 +12,7 @@ from celery.canvas import group, chunks
 
 from ..core import celery, db
 from .model import Listing, Image
-from .scrape import iter_scraped_results
+from . import scrape as cl_scrape
 
 __all__ = ['download_listing', 'download_image']
 
@@ -70,7 +70,7 @@ def download_images_for_listing(listing_id, force=False):
     image_group = group([download_image.si(img_id, force=force).set(countdown=int(random.uniform(0, app.config['CRAIGSLIST_TASK_SKEW']))) for img_id in image_ids])
     result = image_group.delay()
     result.save()
-    return result
+    return result.id
 
 @requests_retry_task()
 def download_image(image_id, force=False):
@@ -121,10 +121,10 @@ def new_listing_pipeline(listing_json, force=False):
 def scrape(limit=None, force=False):
     """Scrape listings from craigslist, and ingest them properly."""
     limit = limit if limit is not None else app.config['CRAIGSLIST_MAX_SCRAPE']
-    g = group([new_listing_pipeline(result, force=force) for result in iter_scraped_results(app, limit=limit)])
+    g = group([new_listing_pipeline(result, force=force) for result in cl_scrape.iter_scraped_results(app, limit=limit)])
     result = g.delay()
     result.save()
-    return result
+    return result.id
 
 @celery.task
 def export_listing(listing_id, force=False):
@@ -144,7 +144,7 @@ def export_listings(force=False):
     exporters = group([export_listing.s(listing.id, force=force) for listing in Listing.query])
     result = exporters.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
     result.save()
-    return result
+    return result.id
 
 @celery.task
 def ensure_downloaded(force=False):
@@ -156,4 +156,4 @@ def ensure_downloaded(force=False):
     downloaders = group([(download_listing.si(listing.id, force=force) | download_images_for_listing.s(force=force)) for listing in listings])
     result = downloaders.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
     result.save()
-    return result
+    return result.id
