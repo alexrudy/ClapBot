@@ -49,4 +49,4 @@ def celery_worker_parameters():
 
 @pytest.fixture
 def celery_timeout():
-    return 10
+    return 30

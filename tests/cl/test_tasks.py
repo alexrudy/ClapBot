@@ -2,6 +2,8 @@ import pytest
 import json
 import os
 
+import requests
+
 from celery.result import GroupResult, AsyncResult
 
 from clapbot.cl import tasks, model
@@ -119,3 +121,19 @@ def test_scrape(app, craigslist, celery_app, celery_worker, celery_timeout):
 
         img = model.Image.query.first()
         assert img.full is not None
+    
+    result = tasks.scrape.delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
+    
+def test_image_download(app, monkeypatch, celery_worker, celery_timeout, nointernet, image):
+    """Test the task which downloads an image from craigslist"""
+    with app.app_context():
+        assert model.Image.query.get(image).full is None
+    max_retries = 1
+    monkeypatch.setattr('clapbot.cl.tasks.download_image.max_retries', max_retries)
+
+    result = tasks.download_image.s(image).delay()
+    result.get(timeout=celery_timeout, propagate=False)
+    assert result.failed()
+    url, count = nointernet.popitem()
+    assert count == max_retries + 1

@@ -25,13 +25,13 @@ class RequestsTask(celery.Task):
         try:
            return super().__call__(*args, **kwargs)
         except requests.Timeout as exc:
-            if self.request.retries > app.config.get("REQUESTS_MAX_RETRIES", 5):
-                self.retry(exc=exc, countdown=int(random.uniform(2, 4) ** self.request.retries))
-            raise
+            print("Caught timeout, retrying: {}/{}".format(self.request.retries, self.max_retries))
+            self.retry(exc=exc, countdown=int(random.uniform(2, 4) ** self.request.retries))
 
 def requests_retry_task(**kwargs):
     """Ensure that retries for requests timeouts are properly handled."""
     kwargs['base'] = RequestsTask
+    kwargs.setdefault('max_retries', 5)
     return celery.task(**kwargs)
 
 def get_cached_url(url, path, save=False, description="item"):
@@ -67,8 +67,8 @@ def download_images_for_listing(listing_id, force=False):
     """Return the image ids for image fetching"""
     listing = Listing.query.get(listing_id)
     image_ids = [image.id for image in listing.images if (image.full is None or image.thumbnail is None) or force]
-    image_group = group([download_image.si(img_id, force=force).set(countdown=int(random.uniform(0, app.config['CRAIGSLIST_TASK_SKEW']))) for img_id in image_ids])
-    result = image_group.delay()
+    image_group = group([download_image.si(img_id, force=force) for img_id in image_ids])
+    result = image_group.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
     result.save()
     return result.id
 

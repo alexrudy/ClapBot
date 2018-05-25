@@ -7,7 +7,10 @@ import pytest
 from clapbot.core import celery, db
 from clapbot.cl import model
 
-from httmock import urlmatch, HTTMock
+import requests
+from urllib.parse import urlunsplit
+
+from httmock import urlmatch, HTTMock, all_requests
 
 @pytest.fixture
 def listing(app):
@@ -62,7 +65,7 @@ def image_data():
 def craigslist(monkeypatch, listing_json, listing_html, image_data):
 
     def iter_listings(app, **kwargs):
-        print("Scraping from {kwargs}")
+        print(f"Scraping from {kwargs!r}")
         yield listing_json
 
     monkeypatch.setattr('clapbot.cl.scrape.iter_scraped_results', iter_listings)
@@ -72,14 +75,27 @@ def craigslist(monkeypatch, listing_json, listing_html, image_data):
     @urlmatch(netloc=r'(.*\.)?craigslist\.org$')
     def load_listing(url, request):
         print(f"Returning some listing data for {url}")
-        urls[url] += 1
+        urls[urlunsplit(url)] += 1
         return listing_html
 
     @urlmatch(netloc=r'images\.craigslist\.org$')
     def load_image(url, request):
         print(f"Returning some image data for {url}")
-        urls[url] += 1
+        urls[urlunsplit(url)] += 1
         return image_data
 
-    with HTTMock(load_listing, load_image):
+    with HTTMock(load_image, load_listing):
+        yield urls
+
+@pytest.fixture
+def nointernet():
+    """Block internet access in requests."""
+    urls = Counter()
+
+    @all_requests
+    def timeout_mock(url, request):
+        urls[urlunsplit(url)] += 1
+        raise requests.ConnectTimeout(f"Connection timeout: {urlunsplit(url)}")
+    
+    with HTTMock(timeout_mock):
         yield urls
