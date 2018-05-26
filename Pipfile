@@ -19,6 +19,7 @@ Flask-Mail = "*"
 Flask-Bcrypt = "*"
 Flask-Migrate = "*"
 flower = "*"
+flask-restful = "*"
 
 [dev-packages]
 pytest = "*"
@@ -27,6 +28,9 @@ httmock = "*"
 pylint = "*"
 rope = "*"
 pytest-cov = "*"
+mypy = "*"
+"flake8" = "*"
+yapf = "*"
 
 [requires]
 python_version = "3.6"
