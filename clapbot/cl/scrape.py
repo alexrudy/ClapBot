@@ -4,7 +4,9 @@ Engine behind scraping craigslist for listings and adding them to the database.
 
 import itertools
 
-from ..core import app
+import logging
+
+logger = logging.getLogger(__name__)
 
 __all__ = ['iter_scraped_results']
 
@@ -16,8 +18,8 @@ def safe_iterator(iterable, limit):
             gen = next(iterator)
         except StopIteration:
             break
-        except Exception as e:
-            app.logger.exception(f"Exception in craigslist result: {e}")
+        except Exception as e: # pylint: disable=broad-except
+            logger.exception(f"Exception in craigslist result: {e}")
         else:
             yield gen
 
@@ -26,7 +28,9 @@ def create_scraper(app, site=None, area=None):
     import craigslist
     site = site or app.config['CRAIGSLIST_SITE']
     area = area or app.config['CRAIGSLIST_AREA']
-    return craigslist.CraigslistHousing(site=site, area=area, category=app.config['CRAIGSLIST_CATEGORY'], filters=app.config['CRAIGSLIST_FILTERS'])
+    return craigslist.CraigslistHousing(site=site, area=area,
+                                        category=app.config['CRAIGSLIST_CATEGORY'],
+                                        filters=app.config['CRAIGSLIST_FILTERS'])
 
 def iter_scraped_results(app, site=None, area=None, limit=20):
     """Do a single scrape from craigslist and commit to the database."""

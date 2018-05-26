@@ -1,23 +1,23 @@
-import os
-import tempfile
 from pathlib import Path
 
 import pytest
 
 from celery.contrib.testing.app import DEFAULT_TEST_CONFIG
-from celery.contrib.testing import tasks
+from celery.contrib.testing import tasks # pylint: disable=unused-import
 
-from clapbot import app as _app, db, celery
+from clapbot import app as flask_app, db, celery
+
+# pylint: disable=redefined-outer-name,unused-argument
 
 @pytest.fixture
 def app(tmpdir):
     db.create_all()
     path = Path(tmpdir) / 'data' / 'cl'
     path.mkdir(parents=True, exist_ok=True)
-    _app.config['CRAIGSLIST_CACHE_PATH'] = str(path)
-    _app.config['CRAIGSLIST_CACHE_ENABLE'] = True
-    del _app.logger.handlers[:]
-    yield _app
+    flask_app.config['CRAIGSLIST_CACHE_PATH'] = str(path)
+    flask_app.config['CRAIGSLIST_CACHE_ENABLE'] = True
+    del flask_app.logger.handlers[:] # pylint: disable=no-member
+    yield flask_app
     db.drop_all()
 
 @pytest.fixture
