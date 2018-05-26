@@ -4,7 +4,7 @@ import io
 import datetime as dt
 from functools import wraps
 from sqlalchemy import or_
-from flask import render_template, send_file, redirect, session, request, g, url_for, jsonify
+from flask import render_template, send_file, redirect, session, request, url_for, jsonify
 
 from .application import app, db, bcrypt
 from .model import Listing, Image, UserListingInfo, BoundingBox
@@ -14,6 +14,7 @@ from .cl.tasks import scrape
 
 import redis
 
+
 def check_db():
     try:
         db.session.query("1").from_statement("SELECT 1").all()
@@ -21,7 +22,8 @@ def check_db():
         return False
     else:
         return True
-        
+
+
 def check_redis(url):
     r = redis.StrictRedis.from_url(url)
     try:
@@ -31,6 +33,7 @@ def check_redis(url):
     else:
         return True
 
+
 @app.route('/healthcheck')
 def healthcheck():
     """Respond with a healthcheck"""
@@ -39,13 +42,16 @@ def healthcheck():
         info['redis'] = check_redis(app.config['CELERY_BROKER_URL'])
     return jsonify(info)
 
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get('token','') != app.config['CLAPBOT_PASSWORD_TOKEN']:
+        if session.get('token', '') != app.config['CLAPBOT_PASSWORD_TOKEN']:
             return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 @app.route("/mail")
 @login_required
@@ -54,6 +60,7 @@ def mailer():
     notify.delay()
     return redirect(url_for('home'))
 
+
 @app.route("/scrape")
 @login_required
 def scraper():
@@ -61,20 +68,24 @@ def scraper():
     scrape.delay()
     return redirect(url_for('home'))
 
+
 @app.route('/logout')
 def logout():
     """Log the user out."""
-    session.pop('token','')
+    session.pop('token', '')
     return redirect(url_for('login'))
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        if bcrypt.check_password_hash(app.config['CLAPBOT_PASSWORD_HASH'], request.form['Password']):
+        if bcrypt.check_password_hash(app.config['CLAPBOT_PASSWORD_HASH'],
+                                      request.form['Password']):
             session['token'] = app.config['CLAPBOT_PASSWORD_TOKEN']
         return redirect(request.form['Redirect'])
     else:
         return render_template("login.html")
+
 
 @app.route("/latest")
 @login_required
@@ -85,6 +96,7 @@ def latest():
     listings = listings.order_by(UserListingInfo.score.desc())
     return render_template("home.html", listings=listings)
 
+
 @app.route("/")
 @login_required
 def home():
@@ -94,10 +106,13 @@ def home():
     listings = listings.order_by(UserListingInfo.score.desc())
     return render_template("home.html", listings=listings)
 
+
 def filter_rejected(listings):
     """Filter out rejected listings"""
     joined = listings.from_self().join(UserListingInfo, isouter=True)
-    return joined.filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+    return joined.filter(
+        or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
+
 
 @app.route("/mobile/")
 def mobile_start():
@@ -107,21 +122,31 @@ def mobile_start():
     listing = listings.order_by(UserListingInfo.score.desc()).first()
     return redirect(url_for("mobile", identifier=listing.id))
 
+
 @app.route("/mobile/<int:identifier>/")
 def mobile(identifier):
     """A mobile view, for a single listing."""
     listing = Listing.query.get_or_404(identifier)
-    prev_lisitng = Listing.query.filter(Listing.created < listing.created).order_by(Listing.created.desc())
+    prev_lisitng = Listing.query.filter(
+        Listing.created < listing.created).order_by(Listing.created.desc())
     prev_lisitng = prev_lisitng.limit(1).one_or_none()
-    next_lisitng = Listing.query.filter(Listing.created > listing.created).order_by(Listing.created.asc())
+    next_lisitng = Listing.query.filter(
+        Listing.created > listing.created).order_by(Listing.created.asc())
     next_lisitng = next_lisitng.limit(1).one_or_none()
-    return render_template("mobile.html", listing=listing, previous_listing=prev_lisitng, next_listing=next_lisitng)
+    return render_template(
+        "mobile.html",
+        listing=listing,
+        previous_listing=prev_lisitng,
+        next_listing=next_lisitng)
+
 
 @app.route("/mobile/starred/")
 def mobile_starred(identifier):
     """Mobile starred items"""
     joined = listings.from_self().join(UserListingInfo, isouter=True)
-    return joined.filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None))
+    return joined.filter(
+        or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
+
 
 @app.route("/image/<int:identifier>/full.jpg")
 def image(identifier):
@@ -132,6 +157,7 @@ def image(identifier):
     else:
         return redirect(img.url)
 
+
 @app.route("/image/<int:identifier>/thumbnail.jpg")
 def thumbnail(identifier):
     """docstring for thumbnail"""
@@ -140,16 +166,20 @@ def thumbnail(identifier):
         return send_file(io.BytesIO(img.thumbnail), mimetype='image/jpeg')
     else:
         return redirect(img.thumbnail_url)
-    
+
 
 @app.route("/listing/starred")
 @login_required
 def starred():
     """Starred lisitngs"""
     listings = Listing.query.order_by(Listing.created.desc())
-    listings = listings.from_self().join(UserListingInfo, isouter=True).filter(or_(~UserListingInfo.rejected,UserListingInfo.rejected == None), UserListingInfo.starred == True)
+    listings = listings.from_self().join(
+        UserListingInfo, isouter=True).filter(
+            or_(~UserListingInfo.rejected, UserListingInfo.rejected == None),
+            UserListingInfo.starred == True)
     listings = listings.order_by(UserListingInfo.score.desc())
     return render_template("home.html", listings=listings, title='Starred')
+
 
 @app.route("/listing/<int:id>/star", methods=['POST'])
 @login_required
@@ -158,7 +188,8 @@ def star(id):
     listing = Listing.query.get_or_404(id)
     listing.userinfo.starred = not listing.userinfo.starred
     db.session.commit()
-    return jsonify({'id':id, 'starred': listing.userinfo.starred})
+    return jsonify({'id': id, 'starred': listing.userinfo.starred})
+
 
 @app.route("/listing/<int:id>/reject", methods=['POST'])
 @login_required
@@ -167,8 +198,9 @@ def reject(id):
     listing = Listing.query.get_or_404(id)
     listing.userinfo.rejected = not listing.userinfo.rejected
     db.session.commit()
-    return jsonify({'id':id, 'rejected': listing.userinfo.rejected })
-    
+    return jsonify({'id': id, 'rejected': listing.userinfo.rejected})
+
+
 @app.route("/listing/<int:id>/upvote", methods=['POST'])
 @login_required
 def upvote(id):
@@ -176,7 +208,8 @@ def upvote(id):
     listing = Listing.query.get_or_404(id)
     listing.userinfo.score += 100
     db.session.commit()
-    return jsonify({'id':id,'score':listing.userinfo.score})
+    return jsonify({'id': id, 'score': listing.userinfo.score})
+
 
 @app.route("/listing/<int:id>/downvote", methods=['POST'])
 @login_required
@@ -185,7 +218,8 @@ def downvote(id):
     listing = Listing.query.get_or_404(id)
     listing.userinfo.score -= 100
     db.session.commit()
-    return jsonify({'id':id,'score':listing.userinfo.score})
+    return jsonify({'id': id, 'score': listing.userinfo.score})
+
 
 @app.route("/listing/<int:id>/", methods=['GET', 'POST'])
 @login_required
@@ -200,6 +234,7 @@ def listing(id):
         return redirect(url_for('listing', id=id))
     return render_template("single.html", listing=listing)
 
+
 @app.route("/bboxes/", methods=['POST'])
 @login_required
 def bboxes():
@@ -209,16 +244,29 @@ def bboxes():
         BoundingBox.query.delete()
         location.import_bounding_boxes(bboxes)
     return redirect(url_for('settings'))
-    
+
+
 @app.route("/settings/")
 @login_required
 def settings():
     """Settings view"""
     email = app.config['MAIL_DEFAULT_RECIPIENTS']
-    craigslist = { key[len('CRAIGSLIST_'):]: value for key, value in app.config.items() if key.startswith('CRAIGSLIST_')}
-    scoring = { key.replace("CRAIGSLIST_", '').replace('SCORE_',''):value for key, value in app.config.items() if key.startswith('SCORE_') or key.startswith('CRAIGSLIST_SCORE_')}
-    
+    craigslist = {
+        key[len('CRAIGSLIST_'):]: value
+        for key, value in app.config.items() if key.startswith('CRAIGSLIST_')
+    }
+    scoring = {
+        key.replace("CRAIGSLIST_", '').replace('SCORE_', ''): value
+        for key, value in app.config.items()
+        if key.startswith('SCORE_') or key.startswith('CRAIGSLIST_SCORE_')
+    }
+
     stream = io.StringIO()
     location.export_bounding_boxes(stream)
-    
-    return render_template("settings.html", email=email, craigslist=craigslist, scoring=scoring, bboxes=stream.getvalue())
+
+    return render_template(
+        "settings.html",
+        email=email,
+        craigslist=craigslist,
+        scoring=scoring,
+        bboxes=stream.getvalue())

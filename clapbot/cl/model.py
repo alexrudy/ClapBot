@@ -15,15 +15,18 @@ from ..core import db
 
 __all__ = ['images', 'tags', 'Image', 'Listing', 'Tag']
 
-tags = db.Table('tags',
-                db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
-                db.Column('listing_id', db.Integer, db.ForeignKey('listing.id')),
-               )
+tags = db.Table(
+    'tags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
+    db.Column('listing_id', db.Integer, db.ForeignKey('listing.id')),
+)
 
-images = db.Table('images',
-                  db.Column('image_id', db.Integer, db.ForeignKey('image.id')),
-                  db.Column('listing_id', db.Integer, db.ForeignKey('listing.id')),
-                 )
+images = db.Table(
+    'images',
+    db.Column('image_id', db.Integer, db.ForeignKey('image.id')),
+    db.Column('listing_id', db.Integer, db.ForeignKey('listing.id')),
+)
+
 
 class Image(db.Model):
     """Image belonging to a listing."""
@@ -36,7 +39,9 @@ class Image(db.Model):
     @property
     def cache_path(self):
         """Where to find cached image files."""
-        path = Path(app.config['CRAIGSLIST_CACHE_PATH']) / 'images' / '{}'.format(self.cl_id)[:3]
+        path = Path(
+            app.config['CRAIGSLIST_CACHE_PATH']) / 'images' / '{}'.format(
+                self.cl_id)[:3]
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -71,7 +76,9 @@ class Image(db.Model):
         else:
             scheme, netloc, path, query, fragment = url
             path = self.cl_id + "_50x50c.jpg"
-            return urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))
+            return urllib.parse.urlunsplit((scheme, netloc, path, query,
+                                            fragment))
+
 
 class Tag(db.Model):
     """A simple craigslist tag."""
@@ -79,6 +86,7 @@ class Tag(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
+
 
 class Listing(db.Model):
     """Craigslist Listing"""
@@ -100,8 +108,9 @@ class Listing(db.Model):
 
     area = db.Column(db.String)
     transit_stop_id = db.Column(db.Integer, db.ForeignKey("transitstop.id"))
-    transit_stop = db.relationship("clapbot.model.TransitStop",
-                                   backref=db.backref('listings', lazy='dynamic'))
+    transit_stop = db.relationship(
+        "clapbot.model.TransitStop",
+        backref=db.backref('listings', lazy='dynamic'))
 
     bedrooms = db.Column(db.Integer)
     bathrooms = db.Column(db.Integer)
@@ -110,10 +119,12 @@ class Listing(db.Model):
     text = db.Column(db.Text)
     page = db.Column(db.Text)
 
-    tags = db.relationship('Tag', secondary=tags,
-                           backref=db.backref('listings', lazy='dynamic'))
-    images = db.relationship('Image', secondary=images,
-                             backref=db.backref('listings', lazy='dynamic'))
+    tags = db.relationship(
+        'Tag', secondary=tags, backref=db.backref('listings', lazy='dynamic'))
+    images = db.relationship(
+        'Image',
+        secondary=images,
+        backref=db.backref('listings', lazy='dynamic'))
 
     notified = db.Column(db.Boolean, default=False)
 
@@ -128,7 +139,9 @@ class Listing(db.Model):
     @property
     def cache_path(self):
         """Where to find cached listings"""
-        path = Path(app.config['CRAIGSLIST_CACHE_PATH']) / 'listings' / '{}'.format(self.cl_id)[:3]
+        path = Path(
+            app.config['CRAIGSLIST_CACHE_PATH']) / 'listings' / '{}'.format(
+                self.cl_id)[:3]
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -155,7 +168,6 @@ class Listing(db.Model):
         if isinstance(value, dt.datetime):
             return value
         return dt.datetime.strptime(value, "%Y-%m-%d %H:%M")
-
 
     @validates("available")
     def validate_date(self, key, value):
@@ -201,9 +213,15 @@ class Listing(db.Model):
 
     def to_json(self):
         """Return the JSON-compatible structure which could create this object."""
-        result = {'id':str(self.cl_id), 'datetime': self.created.strftime('%Y-%m-%d %H:%M'),
-                  'where':self.location, 'url': self.url,
-                  'price':f"${self.price:.0f}", 'name':self.name, 'geotag':[self.lat, self.lon]}
+        result = {
+            'id': str(self.cl_id),
+            'datetime': self.created.strftime('%Y-%m-%d %H:%M'),
+            'where': self.location,
+            'url': self.url,
+            'price': f"${self.price:.0f}",
+            'name': self.name,
+            'geotag': [self.lat, self.lon]
+        }
         return result
 
     @classmethod
@@ -232,14 +250,14 @@ class Listing(db.Model):
                                   float(map_tag.attrs['data-longitude']))
 
         # Extract images:
-        images_div = soup.find("div", {'id':'thumbs'})
+        images_div = soup.find("div", {'id': 'thumbs'})
         if images_div is not None:
             for img in images_div.find_all('a', {'class', 'thumb'}):
                 url = img.attrs['href']
                 if not any(url == image.url for image in self.images):
                     self.images.append(url)
         if not self.images:
-            gallery_image = soup.find("div", {'class':'gallery'})
+            gallery_image = soup.find("div", {'class': 'gallery'})
             for img in gallery_image.find_all('img'):
                 url = img.attrs['src']
                 if not any(url == image.url for image in self.images):
@@ -249,29 +267,40 @@ class Listing(db.Model):
 
         app.logger.info("Added {} images to {}".format(len(self.images), self))
         # Extract text
-        self.text = soup.find("section", {'id':'postingbody'}).text
+        self.text = soup.find("section", {'id': 'postingbody'}).text
 
         # Extract tags
-        for attrgroup in soup.find('div', {'class':'mapAndAttrs'}).find_all('p', {'class':'attrgroup'}):
+        for attrgroup in soup.find('div', {
+                'class': 'mapAndAttrs'
+        }).find_all('p', {'class': 'attrgroup'}):
             for attr in attrgroup.find_all('span'):
                 if 'class' in attr.attrs and 'property_date' in attr['class']:
-                    self.available = dt.datetime.strptime(attr['data-date'], "%Y-%m-%d").date()
+                    self.available = dt.datetime.strptime(
+                        attr['data-date'], "%Y-%m-%d").date()
                     continue
 
                 if attr.text.endswith('ft2'):
                     try:
                         self.size = float(attr.text[:-3])
                     except ValueError:
-                        app.logger.warning("Can't parse size tag {0}.".format(attr.text), exc_info=True)
+                        app.logger.warning(
+                            "Can't parse size tag {0}.".format(attr.text),
+                            exc_info=True)
                 elif all(s in attr.text.lower() for s in ("/", "br", "ba")):
                     bedrooms, baths = attr.text.split("/", 1)
                     try:
-                        self.bedrooms = int(bedrooms.lower().replace("br", "").strip())
+                        self.bedrooms = int(bedrooms.lower().replace(
+                            "br", "").strip())
                     except ValueError:
-                        app.logger.warning("Can't parse bedroom tag {0}.".format(attr.text), exc_info=True)
+                        app.logger.warning(
+                            "Can't parse bedroom tag {0}.".format(attr.text),
+                            exc_info=True)
                     try:
-                        self.bathrooms = float(baths.lower().replace("ba", "").strip())
+                        self.bathrooms = float(baths.lower().replace(
+                            "ba", "").strip())
                     except ValueError:
-                        app.logger.warning("Can't parse bathroom tag {0}.".format(attr.text), exc_info=True)
+                        app.logger.warning(
+                            "Can't parse bathroom tag {0}.".format(attr.text),
+                            exc_info=True)
                 elif not any(attr.text == tag.name for tag in self.tags):
                     self.tags.append(attr.text)
