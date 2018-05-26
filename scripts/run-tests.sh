@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-if (dc run --rm "flask.test" tox $@); then
+if (dc run --rm "flask.test" tox "$@"); then
     RESULT=$?
 else
     RESULT=$?
