@@ -166,3 +166,33 @@ def test_image_download(app, monkeypatch, celery_worker, celery_timeout,
     assert result.failed()
     url, count = nointernet.popitem()
     assert count == max_retries + 1
+
+
+@pytest.mark.celery
+def test_check_expiration(app, craigslist, celery_app, celery_worker,
+                          celery_timeout):
+    result = tasks.scrape.delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(
+        result, app=celery_app).get(timeout=celery_timeout)
+    for result in results:
+        GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
+
+    with app.app_context():
+        listing_id = model.Listing.query.first().id
+
+    status_code = tasks.check_expiration.s(listing_id).delay().get(
+        timeout=celery_timeout)
+
+    assert status_code == 200
+
+
+@pytest.mark.celery
+def test_check_expirations(app, craigslist, celery_app, celery_worker,
+                           celery_timeout):
+    result = tasks.scrape.delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(
+        result, app=celery_app).get(timeout=celery_timeout)
+    for result in results:
+        GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
+
+    result = tasks.check_expirations.delay().get(timeout=celery_timeout)

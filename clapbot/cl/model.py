@@ -308,3 +308,15 @@ class Listing(db.Model):
                             exc_info=True)
                 elif not any(attr.text == tag.name for tag in self.tags):
                     self.tags.append(attr.text)
+
+
+class ListingExpirationCheck(db.Model):
+    __tablename__ = 'listingexpirationcheck'
+
+    id = db.Column(db.Integer, primary_key=True)
+    listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'))
+    listing = db.relationship(
+        "Listing", backref=db.backref("_userinfo", uselist=False))
+
+    created = db.Column(db.DateTime)
+    response_status = db.Column(db.Integer)

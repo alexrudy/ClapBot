@@ -39,7 +39,7 @@ class UserListingInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'))
     listing = db.relationship(
-        "Listing", backref=db.backref("_userinfo", uselist=False))
+        "Listing", backref=db.backref("expiration_checks", uselist=True))
     rejected = db.Column(db.Boolean, default=False)
     starred = db.Column(db.Boolean, default=False)
     contacted = db.Column(db.Boolean, default=False)

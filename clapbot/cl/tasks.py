@@ -1,9 +1,14 @@
 import random
 import json
+import datetime as dt
 from pathlib import Path
 from functools import wraps
+from typing import NamedTuple, Optional
 
 import requests
+
+from sqlalchemy import func
+from sqlalchemy.sql.functions import current_date
 
 from flask import current_app as app
 
@@ -11,7 +16,7 @@ from celery.utils.log import get_task_logger
 from celery.canvas import group, chunks
 
 from ..core import db, celery
-from .model import Listing, Image
+from .model import Listing, ListingExpirationCheck, Image
 from . import scrape as cl_scrape
 
 __all__ = ['download_listing', 'download_image']
@@ -40,19 +45,27 @@ def requests_retry_task(**kwargs):
     return celery.task(**kwargs)
 
 
+class CachedResponse(NamedTuple):
+    content: bytes
+    status_code: Optional[int]
+
+
 def get_cached_url(url, path, save=False, description="item"):
     if save:
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.exists():
             logger.info(f"Loading {description} from cached file.")
-            return path.read_bytes()
+            return CachedResponse(path.read_bytes(), 200)
+
     logger.info(f"Requesting {description} from {url}.")
+
     response = requests.get(url, timeout=app.config.get("REQUESTS_TIMEOUT", 5))
     response.raise_for_status()
+
     if save:
         logger.info(f"Saving {description} to cacehd file.")
         path.write_bytes(response.content)
-    return response.content
+    return response
 
 
 @requests_retry_task()
@@ -63,14 +76,21 @@ def download_listing(listing_id, force=False):
     if listing.text is None or force:
         path = listing.cache_path / f"{listing.cl_id}.html"
         save = app.config['CRAIGSLIST_CACHE_ENABLE']
-        content = get_cached_url(
-            listing.url,
-            path,
-            save=save,
-            description=f"listing for {listing.cl_id}")
-        listing.parse_html(content)
-
-    db.session.commit()
+        try:
+            response = get_cached_url(
+                listing.url,
+                path,
+                save=save,
+                description=f"listing for {listing.cl_id}")
+        except requests.HTTPError as exc:
+            listing_expiration_check(listing, response.status_code)
+            raise
+        else:
+            listing.parse_html(response.content)
+            if not isinstance(response, CachedResponse):
+                listing_expiration_check(listing, response.status_code)
+        finally:
+            db.session.commit()
     return listing_id
 
 
@@ -98,21 +118,21 @@ def download_image(image_id, force=False):
 
     if image.full is None or force:
         path = image.cache_path / f"{image.cl_id}.full.jpg"
-        content = get_cached_url(
+        response = get_cached_url(
             image.url,
             path,
             save=save,
             description=f'image (full) {image.cl_id}')
-        image.full = content
+        image.full = response.content
 
     if image.thumbnail is None or force:
         path = image.cache_path / f"{image.cl_id}.thumbnail.jpg"
-        content = get_cached_url(
+        response = get_cached_url(
             image.thumbnail_url,
             path,
             save=save,
             description=f"image (thumbnail) {image.cl_id}")
-        image.thumbnail = content
+        image.thumbnail = response.content
 
     db.session.add(image)
     db.session.commit()
@@ -198,5 +218,55 @@ def ensure_downloaded(force=False):
                          for listing in listings])
     result = downloaders.skew(
         start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
+    result.save()
+    return result.id
+
+
+def listing_expiration_check(listing, status_code):
+    """Performs the listing expiration check."""
+    checkrecord = ListingExpirationCheck(
+        listing_id=listing.id, created=dt.datetime.now())
+    db.session.add(checkrecord)
+
+    if status_code == 404:
+        listing.expired = dt.datetime.now()
+
+    checkrecord.response_status = status_code
+
+
+@requests_retry_task()
+def check_expiration(listing_id):
+    """Check whether a craigslist listing still exists."""
+    listing = Listing.query.get(listing_id)
+
+    response = requests.get(
+        listing.url, timeout=app.config.get("REQUESTS_TIMEOUT", 5))
+
+    listing_expiration_check(listing, response.status_code)
+
+    db.session.commit()
+    return response.status_code
+
+
+@celery.task()
+def check_expirations(limit=100, force=False):
+    """Check whether a bunch of craigslist listing still exist."""
+    listings = Listing.query
+    if not force:
+        listings = listings.filter(Listing.expired == None)
+
+    last_checked = func.max(
+        ListingExpirationCheck.created).label('last_checked')
+    checks = db.session.query(ListingExpirationCheck.listing_id,
+                              last_checked).group_by(
+                                  ListingExpirationCheck.listing_id)
+
+    listings = listings.join(checks)
+    listings.order_by(last_checked)
+    listings.filter(current_date - last_checked > dt.timedelta(days=2))
+    listings.limit(100)
+
+    g = group([check_expiration.si(listing.id) for listing in listings])
+    result = g.delay()
     result.save()
     return result.id
