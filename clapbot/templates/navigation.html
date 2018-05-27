@@ -1,13 +1,17 @@
 <div id="navigation-bar" class='clearfix'>
   <div id="name">
-    <span class='logo1'>Clap</span><span class='logo2'>Bot</span>
+    <span class='logo1'>Clap</span>
+    <span class='logo2'>Bot</span>
   </div>
   <div id="home">
     <a href='{{url_for("home")}}'>Home</a>
   </div>
   {% if session['token'] %}
   <div>
-    <a href='{{url_for("scraper")}}'>Scrape!</a>
+    <a href='{{url_for("cl.api.scrape")}}'>Scrape!</a>
+  </div>
+  <div>
+    <a href='{{url_for("cl.api.download_all")}}'>Download!</a>
   </div>
   <div>
     <a href='{{url_for("mailer")}}'>Email!</a>

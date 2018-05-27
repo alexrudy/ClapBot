@@ -10,7 +10,7 @@ from flask import current_app as app
 from celery.utils.log import get_task_logger
 from celery.canvas import group, chunks
 
-from ..core import celery, db
+from ..core import db, celery
 from .model import Listing, Image
 from . import scrape as cl_scrape
 
@@ -68,7 +68,7 @@ def download_listing(listing_id, force=False):
             path,
             save=save,
             description=f"listing for {listing.cl_id}")
-        listing.parse_html(content)t
+        listing.parse_html(content)
 
     db.session.commit()
     return listing_id
@@ -119,7 +119,7 @@ def download_image(image_id, force=False):
     return image_id
 
 
-@celery.task
+@celery.task()
 def ingest_listing(listing_json, force=False):
     listing = Listing.query.filter_by(cl_id=listing_json['id']).one_or_none()
     if (listing is not None) and (not force):
@@ -148,7 +148,7 @@ def new_listing_pipeline(listing_json, force=False):
             | download_images_for_listing.s(force=force))
 
 
-@celery.task
+@celery.task()
 def scrape(limit=None, force=False):
     """Scrape listings from craigslist, and ingest them properly."""
     limit = limit if limit is not None else app.config['CRAIGSLIST_MAX_SCRAPE']
@@ -161,7 +161,7 @@ def scrape(limit=None, force=False):
     return result.id
 
 
-@celery.task
+@celery.task()
 def export_listing(listing_id, force=False):
     """Dump this listing to disk if needed."""
     listing = Listing.query.get(listing_id)
@@ -174,7 +174,7 @@ def export_listing(listing_id, force=False):
     return listing_id
 
 
-@celery.task
+@celery.task()
 def export_listings(force=False):
     """Ensure listing infor is saved to disk."""
     exporters = group([
@@ -186,7 +186,7 @@ def export_listings(force=False):
     return result.id
 
 
-@celery.task
+@celery.task()
 def ensure_downloaded(force=False):
     """Ensure that listings and images are downloaded to disk."""
 

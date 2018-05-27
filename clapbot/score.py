@@ -2,15 +2,17 @@
 """
 Score listings
 """
-from .application import app
+from flask import current_app as app
 import datetime as dt
 
 _scorefuncs = set()
+
 
 def scorer(f):
     """Decorator marking as a score function."""
     _scorefuncs.add(f)
     return f
+
 
 def score_info(listing):
     """Return scoring information."""
@@ -19,10 +21,12 @@ def score_info(listing):
         info[sf.__name__] = float(sf(listing))
     return info
 
+
 def score_all(listing):
     """docstring for score_all"""
     listing.userinfo.score = sum(float(sf(listing)) for sf in _scorefuncs)
-    
+
+
 @scorer
 def age(listing):
     """Score against listing age."""
@@ -36,12 +40,13 @@ def age(listing):
     else:
         return -3000
 
+
 @scorer
 def transit(listing):
     """Score a listing's transit options."""
     if not app.config['CRAIGSLIST_SCORE_TRANSIT']:
         return 0
-    
+
     if listing.transit_stop is None:
         return -200
     elif listing.transit_stop_distance < 1.0:
@@ -53,6 +58,7 @@ def transit(listing):
     else:
         return 0
 
+
 @scorer
 def location(listing):
     """Score location"""
@@ -61,15 +67,16 @@ def location(listing):
     lat = app.config['CRAIGSLIST_SCORE_WORK_LAT']
     lon = app.config['CRAIGSLIST_SCORE_WORK_LON']
     to_berk = listing.distance_to(lat, lon)
-    
+
     dwork_close = app.config['CRAIGSLIST_SCORE_WORK_CLOSE']
     dwork_medium = app.config['CRAIGSLIST_SCORE_WORK_MEDIUM']
-    
+
     if to_berk < dwork_close:
         return 1000 * ((dwork_close - to_berk) / dwork_close)
     elif to_berk < dwork_medium:
         return 250 * ((dwork_medium - to_berk) / dwork_medium)
     return 0.0
+
 
 @scorer
 def title(listing):
@@ -77,6 +84,7 @@ def title(listing):
     if "studio" in listing.name.lower():
         return app.config['CRAIGSLIST_SCORE_STUDIO_PENALTY']
     return 0.0
+
 
 @scorer
 def pictures(listing):
@@ -90,6 +98,7 @@ def pictures(listing):
         return 0
     else:
         return 200
+
 
 @scorer
 def tags(listing):
@@ -105,13 +114,13 @@ def tags(listing):
         score += 150
     elif any("no laundry on site" == tag.name for tag in listing.tags):
         score -= 300
-    
+
     if any("furnished" == tag.name for tag in listing.tags):
         score -= 250
-    
+
     if any("no smoking" == tag.name for tag in listing.tags):
         score += 100
-    
+
     if any("house" == tag.name for tag in listing.tags):
         score += 300
     elif any("condo" == tag.name for tag in listing.tags):
@@ -120,24 +129,27 @@ def tags(listing):
         score += 5
     return score
 
+
 @scorer
 def availability(listing):
     """Score based on availability date."""
     if listing.available is None:
         return -500
-    target = dt.datetime.strptime(app.config['SCORE_TARGET_DATE'], '%Y-%m-%d').date()
+    target = dt.datetime.strptime(app.config['SCORE_TARGET_DATE'],
+                                  '%Y-%m-%d').date()
     delta = (target - listing.available).days
     multiplier = 0.5
     if listing.available < listing.created.date():
         multiplier = 0.2
     if delta > 32:
-        return -0.5 * multiplier * (listing.price/30.0) * delta
+        return -0.5 * multiplier * (listing.price / 30.0) * delta
     elif delta > 0:
-        return -0.1 * multiplier * (listing.price/30.0) * delta
+        return -0.1 * multiplier * (listing.price / 30.0) * delta
     elif delta < 0:
-        return -0.25 * multiplier * 2000.0/3.0 * abs(delta)
+        return -0.25 * multiplier * 2000.0 / 3.0 * abs(delta)
     return 0.0
-    
+
+
 @scorer
 def bd_ba(listing):
     """Score based on number of bedrooms."""
@@ -148,9 +160,11 @@ def bd_ba(listing):
     bathrooms = 1.5 if listing.bathrooms is None else listing.bathrooms
     if bathrooms > 2 and bathrooms > listing.bedrooms:
         score += -3000
-    
-    score += min(listing.bedrooms,3) * 500 + 0.75 * size + min(bathrooms,3) * 250 
+
+    score += min(listing.bedrooms, 3) * 500 + 0.75 * size + min(bathrooms,
+                                                                3) * 250
     return score
+
 
 @scorer
 def price(listing):
@@ -160,6 +174,6 @@ def price(listing):
     score = 0.0
     bedrooms = 1.0 if listing.bedrooms is None else listing.bedrooms
     if (bedrooms * 1000.0) > listing.price:
-        score += -1000 - ((bedrooms * 750.0)/listing.price - 1.0) * 1000
-    
+        score += -1000 - ((bedrooms * 750.0) / listing.price - 1.0) * 1000
+
     return -1.0 * listing.price + score

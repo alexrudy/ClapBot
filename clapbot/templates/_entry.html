@@ -1,12 +1,17 @@
 <tr id='listing-{{ listing.id }}'>
     <td class='listing-links' width='20%'>
-        <p><a href='{{ url_for("listing", id=listing.id) }}' target='_blank'>{{ listing.name }}</a></p>
+        <p>
+            <a href='{{ url_for("listing", id=listing.id) }}' target='_blank'>{{ listing.name }}</a>
+        </p>
         <ul>
-            <li><a href='{{ listing.url }}' target='_blank'>View on Craigslist</a></li>
+            <li>
+                <a href='{{ listing.url }}' target='_blank'>View on Craigslist</a>
+            </li>
             <li class='listing-form' data-listing-id='{{ listing.id }}'>
             </li>
             <li class='listing-form' data-listing-id='{{ listing.id }}'>
-                Score: <span class='score'>{{ '%.0f' | format(listing.userinfo.score) }}{% if listing.userinfo.rejected %}R{% endif %}</span>
+                Score:
+                <span class='score'>{{ '%.0f' | format(listing.userinfo.score) }}{% if listing.userinfo.rejected %}R{% endif %}</span>
                 <button data-target='reject' data-listing-url='{{ url_for("reject", id=listing.id) }}'>
                     {% if listing.userinfo.rejected %}
                     <span style='color: red;'>✖︎</span>
@@ -27,31 +32,33 @@
     <td width='15%' class='listing-main'>
         <p>${{ '%.2f' | format(listing.price) }}</p>
         {% if listing.bedrooms or listing.bathrooms %}
-            <p>Bed/Ba: {{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}</p>
-        {% endif %}
-        {% if listing.size %}
-            <p><strong>Area:</strong> {{ '%.0f sqare ft'|format(listing.size) }}</p>
+        <p>Bed/Ba: {{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}</p>
+        {% endif %} {% if listing.size %}
+        <p>
+            <strong>Area:</strong> {{ '%.0f sqare ft'|format(listing.size) }}</p>
         {% endif %}
         <p>Created: {{ listing.created.strftime("%Y-%m-%d") }}</p>
         <p>Available: {{ listing.available | default('', true) }}</p>
-        
+
     </td>
     <td width='40%'>
         <div data-featherlight-gallery data-featherlight-filter="a">
             {% for image in listing.images %}
-                <a href='{{ url_for("image", identifier=image.id) }}'>
-                    <img src='{{ url_for("thumbnail", identifier=image.id) }}' height=50 width=50>
-                </a>
+            <a href='{{ url_for("cl.api.image", identifier=image.id) }}'>
+                <img src='{{ url_for("cl.api.thumbnail", identifier=image.id) }}' height=50 width=50>
+            </a>
             {% endfor %}
         </div>
-        
+
     </td>
     <td class='listing-location'>
-        <p><a href='http://maps.google.com/?q={{listing.lat}},{{listing.lon}}' target='_blank'>{{ listing.location | default('', true) | truncate(120) }}</a></p>
+        <p>
+            <a href='http://maps.google.com/?q={{listing.lat}},{{listing.lon}}' target='_blank'>{{ listing.location | default('', true) | truncate(120) }}</a>
+        </p>
         <p>
             {% if listing.transit_stop %}
-                    <strong>{{ listing.transit_stop.agency }}</strong>: {{ listing.transit_stop.name }} @ {{ '%.1f'|format(listing.transit_stop_distance) }}km
-            {% endif %}
+            <strong>{{ listing.transit_stop.agency }}</strong>: {{ listing.transit_stop.name }} @ {{ '%.1f'|format(listing.transit_stop_distance)
+            }}km {% endif %}
         </p>
         {% if listing.lat != None %}
         <p>Work: {{ '%.1f' | format(listing.distance_to_work()) }}km</p>
@@ -59,20 +66,16 @@
     </td>
     <td>
         <ul class='tags'>
-        {% for tag in listing.tags %}
-            {% if "2017" not in tag.name %}
+            {% for tag in listing.tags %} {% if "2017" not in tag.name %}
             <li>{{ tag.name }}</li>
-            {% endif %}
-        {% endfor %}
+            {% endif %} {% endfor %}
         </ul>
     </td>
     <td>
         <ul class='tags'>
-        {% for name, score in listing.score_info|dictsort %}
-            {% if score != 0.0 %}
+            {% for name, score in listing.score_info|dictsort %} {% if score != 0.0 %}
             <li>{{ name }}: {{ '%.0f' | format(score) }}</li>
-            {% endif %}
-        {% endfor %}
+            {% endif %} {% endfor %}
         </ul>
     </td>
 </tr>

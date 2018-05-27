@@ -4,15 +4,16 @@ import io
 import datetime as dt
 from functools import wraps
 from sqlalchemy import or_
-from flask import render_template, send_file, redirect, session, request, url_for, jsonify
-
-from .application import app, db, bcrypt
-from .model import Listing, Image, UserListingInfo, BoundingBox
-from . import location
-from .tasks import notify
-from .cl.tasks import scrape
-
+from flask import Blueprint, render_template, send_file, redirect, session, request, url_for, jsonify
+from flask import current_app as app
 import redis
+
+from .core import db, bcrypt
+from .model import UserListingInfo, BoundingBox
+from .cl.model import Listing, Image
+from . import location
+
+bp = Blueprint('core', __name__)
 
 
 def check_db():
@@ -34,7 +35,7 @@ def check_redis(url):
         return True
 
 
-@app.route('/healthcheck')
+@bp.route('/healthcheck')
 def healthcheck():
     """Respond with a healthcheck"""
     info = {'time': dt.datetime.now().isoformat(), 'db': check_db()}
@@ -53,30 +54,23 @@ def login_required(f):
     return decorated_function
 
 
-@app.route("/mail")
+@bp.route("/mail")
 @login_required
 def mailer():
     """Mail things to me!"""
+    from .tasks import notify
     notify.delay()
     return redirect(url_for('home'))
 
 
-@app.route("/scrape")
-@login_required
-def scraper():
-    """Scrape craigslist now!"""
-    scrape.delay()
-    return redirect(url_for('home'))
-
-
-@app.route('/logout')
+@bp.route('/logout')
 def logout():
     """Log the user out."""
     session.pop('token', '')
     return redirect(url_for('login'))
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         if bcrypt.check_password_hash(app.config['CLAPBOT_PASSWORD_HASH'],
@@ -87,7 +81,7 @@ def login():
         return render_template("login.html")
 
 
-@app.route("/latest")
+@bp.route("/latest")
 @login_required
 def latest():
     """Render the latest few as if they were to be emailed."""
@@ -97,7 +91,7 @@ def latest():
     return render_template("home.html", listings=listings)
 
 
-@app.route("/")
+@bp.route("/")
 @login_required
 def home():
     """Homepage"""
@@ -114,7 +108,7 @@ def filter_rejected(listings):
         or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
 
 
-@app.route("/mobile/")
+@bp.route("/mobile/")
 def mobile_start():
     """Mobile start page"""
     listings = Listing.query.order_by(Listing.created.desc())
@@ -123,7 +117,7 @@ def mobile_start():
     return redirect(url_for("mobile", identifier=listing.id))
 
 
-@app.route("/mobile/<int:identifier>/")
+@bp.route("/mobile/<int:identifier>/")
 def mobile(identifier):
     """A mobile view, for a single listing."""
     listing = Listing.query.get_or_404(identifier)
@@ -140,7 +134,7 @@ def mobile(identifier):
         next_listing=next_lisitng)
 
 
-@app.route("/mobile/starred/")
+@bp.route("/mobile/starred/")
 def mobile_starred(identifier):
     """Mobile starred items"""
     joined = listings.from_self().join(UserListingInfo, isouter=True)
@@ -148,7 +142,7 @@ def mobile_starred(identifier):
         or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
 
 
-@app.route("/image/<int:identifier>/full.jpg")
+@bp.route("/image/<int:identifier>/full.jpg")
 def image(identifier):
     """Serve an image from the local database."""
     img = Image.query.get_or_404(identifier)
@@ -158,7 +152,7 @@ def image(identifier):
         return redirect(img.url)
 
 
-@app.route("/image/<int:identifier>/thumbnail.jpg")
+@bp.route("/image/<int:identifier>/thumbnail.jpg")
 def thumbnail(identifier):
     """docstring for thumbnail"""
     img = Image.query.get_or_404(identifier)
@@ -168,7 +162,7 @@ def thumbnail(identifier):
         return redirect(img.thumbnail_url)
 
 
-@app.route("/listing/starred")
+@bp.route("/listing/starred")
 @login_required
 def starred():
     """Starred lisitngs"""
@@ -181,7 +175,7 @@ def starred():
     return render_template("home.html", listings=listings, title='Starred')
 
 
-@app.route("/listing/<int:id>/star", methods=['POST'])
+@bp.route("/listing/<int:id>/star", methods=['POST'])
 @login_required
 def star(id):
     """Star the named listing."""
@@ -191,7 +185,7 @@ def star(id):
     return jsonify({'id': id, 'starred': listing.userinfo.starred})
 
 
-@app.route("/listing/<int:id>/reject", methods=['POST'])
+@bp.route("/listing/<int:id>/reject", methods=['POST'])
 @login_required
 def reject(id):
     """Reject the named listing."""
@@ -201,7 +195,7 @@ def reject(id):
     return jsonify({'id': id, 'rejected': listing.userinfo.rejected})
 
 
-@app.route("/listing/<int:id>/upvote", methods=['POST'])
+@bp.route("/listing/<int:id>/upvote", methods=['POST'])
 @login_required
 def upvote(id):
     """Reject the named listing."""
@@ -211,7 +205,7 @@ def upvote(id):
     return jsonify({'id': id, 'score': listing.userinfo.score})
 
 
-@app.route("/listing/<int:id>/downvote", methods=['POST'])
+@bp.route("/listing/<int:id>/downvote", methods=['POST'])
 @login_required
 def downvote(id):
     """Reject the named listing."""
@@ -221,7 +215,7 @@ def downvote(id):
     return jsonify({'id': id, 'score': listing.userinfo.score})
 
 
-@app.route("/listing/<int:id>/", methods=['GET', 'POST'])
+@bp.route("/listing/<int:id>/", methods=['GET', 'POST'])
 @login_required
 def listing(id):
     """View a single listing."""
@@ -235,7 +229,7 @@ def listing(id):
     return render_template("single.html", listing=listing)
 
 
-@app.route("/bboxes/", methods=['POST'])
+@bp.route("/bboxes/", methods=['POST'])
 @login_required
 def bboxes():
     """Update the bounding boxes."""
@@ -246,7 +240,7 @@ def bboxes():
     return redirect(url_for('settings'))
 
 
-@app.route("/settings/")
+@bp.route("/settings/")
 @login_required
 def settings():
     """Settings view"""

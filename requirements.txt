@@ -1,6 +1,8 @@
 -i https://pypi.org/simple
 alembic==0.9.9
 amqp==2.2.2
+aniso8601==3.0.0
+atomicwrites==1.1.5
 attrs==18.1.0
 babel==2.5.3
 bcrypt==3.1.4
@@ -15,6 +17,7 @@ click==6.7
 flask-bcrypt==0.7.1
 flask-mail==0.9.1
 flask-migrate==2.1.1
+flask-restful==0.3.6
 flask-scss==0.5
 flask-sqlalchemy==2.3.2
 flask==1.0.2
@@ -25,13 +28,13 @@ jinja2==2.10
 kombu==4.1.0
 mako==1.0.7
 markupsafe==1.0
-more-itertools==4.1.0
+more-itertools==4.2.0
 pluggy==0.6.0
 psycopg2==2.7.4
 py==1.5.3
 pycparser==2.18
 pyscss==1.3.5
-pytest==3.5.1
+pytest==3.6.0
 python-craigslist==1.0.6
 python-dateutil==2.7.3
 python-editor==1.0.3

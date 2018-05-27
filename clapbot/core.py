@@ -1,1 +1,1 @@
-from .application import db, migrate, scss, bcrypt, celery, app
+from .application import db, migrate, bcrypt, mail, celery
