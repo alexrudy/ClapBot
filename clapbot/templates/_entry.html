@@ -1,7 +1,7 @@
 <tr id='listing-{{ listing.id }}'>
     <td class='listing-links' width='20%'>
         <p>
-            <a href='{{ url_for("listing", id=listing.id) }}' target='_blank'>{{ listing.name }}</a>
+            <a href='{{ url_for("core.listing", id=listing.id) }}' target='_blank'>{{ listing.name }}</a>
         </p>
         <ul>
             <li>
@@ -12,14 +12,14 @@
             <li class='listing-form' data-listing-id='{{ listing.id }}'>
                 Score:
                 <span class='score'>{{ '%.0f' | format(listing.userinfo.score) }}{% if listing.userinfo.rejected %}R{% endif %}</span>
-                <button data-target='reject' data-listing-url='{{ url_for("reject", id=listing.id) }}'>
+                <button data-target='reject' data-listing-url='{{ url_for("core.reject", id=listing.id) }}'>
                     {% if listing.userinfo.rejected %}
                     <span style='color: red;'>✖︎</span>
                     {% else %}
                     <span style='color: black;'>✖︎</span>
                     {% endif %}
                 </button>
-                <button data-target='star' data-listing-url='{{ url_for("star", id=listing.id) }}'>
+                <button data-target='star' data-listing-url='{{ url_for("core.star", id=listing.id) }}'>
                     {% if listing.userinfo.starred %}
                     <span style='color: gold;'>⭑</span>
                     {% else %}

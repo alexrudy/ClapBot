@@ -4,7 +4,7 @@
     <span class='logo2'>Bot</span>
   </div>
   <div id="home">
-    <a href='{{url_for("home")}}'>Home</a>
+    <a href='{{url_for("core.home")}}'>Home</a>
   </div>
   {% if session['token'] %}
   <div>
@@ -14,16 +14,16 @@
     <a href='{{url_for("cl.api.download_all")}}'>Download!</a>
   </div>
   <div>
-    <a href='{{url_for("mailer")}}'>Email!</a>
+    <a href='{{url_for("core.mailer")}}'>Email!</a>
   </div>
   <div>
-    <a href='{{url_for("starred")}}'>Starred</a>
+    <a href='{{url_for("core.starred")}}'>Starred</a>
   </div>
   <div>
-    <a href='{{url_for("settings")}}'>Settings</a>
+    <a href='{{url_for("core.settings")}}'>Settings</a>
   </div>
   <div>
-    <a href='{{url_for("logout")}}'>Logout</a>
+    <a href='{{url_for("core.logout")}}'>Logout</a>
   </div>
   {% endif %}
 </div>
