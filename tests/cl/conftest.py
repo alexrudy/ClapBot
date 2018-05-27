@@ -8,9 +8,12 @@ from clapbot.core import db
 from clapbot.cl import model
 
 import requests
+import logging
 from urllib.parse import urlunsplit
 
 from httmock import urlmatch, HTTMock, all_requests
+
+log = logging.getLogger('__name__')
 
 
 @pytest.fixture
@@ -72,7 +75,7 @@ def image_data():
 @pytest.fixture
 def craigslist(monkeypatch, listing_json, listing_html, image_data):
     def iter_listings(app, **kwargs):
-        print(f"Scraping from {kwargs!r}")
+        log.info(f"Scraping from {kwargs!r}")
         yield listing_json
 
     monkeypatch.setattr('clapbot.cl.scrape.iter_scraped_results',
@@ -82,13 +85,13 @@ def craigslist(monkeypatch, listing_json, listing_html, image_data):
 
     @urlmatch(netloc=r'(.*\.)?craigslist\.org$')
     def load_listing(url, request):
-        print(f"Returning some listing data for {url}")
+        log.info(f"Returning some listing data for {url}")
         urls[urlunsplit(url)] += 1
         return listing_html
 
     @urlmatch(netloc=r'images\.craigslist\.org$')
     def load_image(url, request):
-        print(f"Returning some image data for {url}")
+        log.info(f"Returning some image data for {url}")
         urls[urlunsplit(url)] += 1
         return image_data
 
