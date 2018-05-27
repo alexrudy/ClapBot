@@ -111,3 +111,16 @@ def nointernet():
 
     with HTTMock(timeout_mock):
         yield urls
+
+
+@pytest.fixture
+def missingpages():
+    urls = Counter()
+
+    @all_requests
+    def timeout_mock(url, request):
+        urls[urlunsplit(url)] += 1
+        return {'status_code': 404, 'content': 'Missing'}
+
+    with HTTMock(timeout_mock):
+        yield urls

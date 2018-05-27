@@ -196,3 +196,17 @@ def test_check_expirations(app, craigslist, celery_app, celery_worker,
         GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
 
     result = tasks.check_expirations.delay().get(timeout=celery_timeout)
+
+
+@pytest.mark.celery
+def test_expire_listing(app, listing, missingpages, celery_app, celery_worker,
+                        celery_timeout):
+
+    status_code = tasks.check_expiration.s(listing).delay().get(
+        timeout=celery_timeout)
+    assert status_code == 404
+
+    with app.app_context():
+        listing = model.Listing.query.first()
+
+        assert listing.expired is not None
