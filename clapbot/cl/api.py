@@ -17,16 +17,20 @@ bp = Blueprint('cl.api', __name__)
 @login_required
 def scrape():
     """Scrape craigslist now!"""
-    t.scrape.delay()
-    return redirect(url_for('home'))
+    result = t.scrape.delay()
+    response = redirect(url_for('core.home'))
+    response.headers['X-result-token'] = result.id
+    return response
 
 
 @bp.route("/download-all")
 @login_required
 def download_all():
     """Ensure all listings are downloaded"""
-    t.ensure_downloaded.delay()
-    return redirect(url_for('home'))
+    result = t.ensure_downloaded.delay()
+    response = redirect(url_for('core.home'))
+    response.headers['X-result-token'] = result.id
+    return response
 
 
 # Image management items
