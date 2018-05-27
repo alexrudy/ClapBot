@@ -263,8 +263,9 @@ def check_expirations(limit=100, force=False):
 
     listings = listings.join(checks)
     listings.order_by(last_checked)
-    listings.filter(current_date - last_checked > dt.timedelta(days=2))
-    listings.limit(100)
+    if not force:
+        listings.filter(current_date - last_checked > dt.timedelta(days=2))
+    listings.limit(limit)
 
     g = group([check_expiration.si(listing.id) for listing in listings])
     result = g.delay()

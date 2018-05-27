@@ -202,8 +202,8 @@ def test_check_expirations(app, craigslist, celery_app, celery_worker,
 def test_expire_listing(app, listing, missingpages, celery_app, celery_worker,
                         celery_timeout):
 
-    status_code = tasks.check_expiration.s(listing).delay().get(
-        timeout=celery_timeout)
+    status_code = tasks.check_expiration.s(
+        listing, force=True).delay().get(timeout=celery_timeout)
     assert status_code == 404
 
     with app.app_context():
