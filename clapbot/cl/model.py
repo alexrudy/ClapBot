@@ -1,4 +1,5 @@
 import base64
+import logging
 import datetime as dt
 import urllib.parse
 from pathlib import Path
@@ -14,6 +15,8 @@ from ..utils import coord_distance
 from ..core import db
 
 __all__ = ['images', 'tags', 'Image', 'Listing', 'Tag']
+
+logger = logging.getLogger(__name__)
 
 tags = db.Table(
     'tags',
@@ -263,9 +266,10 @@ class Listing(db.Model):
                 if not any(url == image.url for image in self.images):
                     self.images.append(url)
         if not self.images:
-            app.logger.warning("No images found for {0}".format(self))
+            logger.warning("No images found for {0}".format(self))
+        else:
+            logger.info("Added {} images to {}".format(len(self.images), self))
 
-        app.logger.info("Added {} images to {}".format(len(self.images), self))
         # Extract text
         self.text = soup.find("section", {'id': 'postingbody'}).text
 
@@ -283,7 +287,7 @@ class Listing(db.Model):
                     try:
                         self.size = float(attr.text[:-3])
                     except ValueError:
-                        app.logger.warning(
+                        logger.warning(
                             "Can't parse size tag {0}.".format(attr.text),
                             exc_info=True)
                 elif all(s in attr.text.lower() for s in ("/", "br", "ba")):
@@ -292,14 +296,14 @@ class Listing(db.Model):
                         self.bedrooms = int(bedrooms.lower().replace(
                             "br", "").strip())
                     except ValueError:
-                        app.logger.warning(
+                        logger.warning(
                             "Can't parse bedroom tag {0}.".format(attr.text),
                             exc_info=True)
                     try:
                         self.bathrooms = float(baths.lower().replace(
                             "ba", "").strip())
                     except ValueError:
-                        app.logger.warning(
+                        logger.warning(
                             "Can't parse bathroom tag {0}.".format(attr.text),
                             exc_info=True)
                 elif not any(attr.text == tag.name for tag in self.tags):
