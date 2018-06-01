@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from celery.contrib.testing.app import DEFAULT_TEST_CONFIG
-from celery.contrib.testing import tasks  # pylint: disable=unused-import # noqa: F401
+from celery.contrib.testing import tasks  # noqa: F401 pylint: disable=unused-import
 
 from clapbot.application import create_app
 from clapbot.core import db, celery

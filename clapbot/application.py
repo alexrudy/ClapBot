@@ -8,18 +8,20 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_scss import Scss
 from flask_mail import Mail
+from flask_login import LoginManager
 from celery import Celery
 
 db = SQLAlchemy()
 mail = Mail()
 bcrypt = Bcrypt()
 migrate = Migrate()
+login = LoginManager()
 
 
 def create_celery_app():
-    celery = Celery('clapbot')
+    capp = Celery('clapbot')
 
-    TaskBase = celery.Task
+    TaskBase = capp.Task
 
     class ContextTask(TaskBase):
         abstract = True
@@ -29,8 +31,8 @@ def create_celery_app():
             with self.flask_app.app_context():
                 return TaskBase.__call__(self, *args, **kwargs)
 
-    celery.Task = ContextTask
-    return celery
+    capp.Task = ContextTask
+    return capp
 
 
 celery = create_celery_app()
@@ -69,6 +71,7 @@ def create_app():
     migrate.init_app(app)
     mail.init_app(app)
     Scss(app)
+    login.init_app(app)
     bcrypt.init_app(app)
     app.config['CLAPBOT_PASSWORD_HASH'] = bcrypt.generate_password_hash(
         app.config.pop('CLAPBOT_PASSWORD'))
