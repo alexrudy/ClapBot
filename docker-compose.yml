@@ -22,7 +22,7 @@ networks:
     driver: bridge
 
 services:
-  
+
   # Postgres
   db:
     image: postgres
@@ -36,7 +36,7 @@ services:
       - ./data/pgdata/:/var/lib/postgresql/data/pgdata
     networks:
       - backend
-  
+
   db-psql:
     image: postgres
     command: ['psql', '-h', 'db', '-U', 'postgres']
@@ -44,18 +44,18 @@ services:
       - PG_PASSWORD=postgres
     networks:
       - backend
-  
+
   # Redis
   redis:
     image: redis:2.8.19
     hostname: redis
     networks:
       - backend
-  
+
   # Flask base
   flask.debug:
     <<: *base
-    entrypoint: ./scripts/flask.sh
+    entrypoint: ./services/flask.sh
     command: run --host='0.0.0.0'
     networks:
       - reverse-proxy
@@ -67,7 +67,7 @@ services:
     depends_on:
       - db
       - celery.worker
-  
+
   flask.test:
     <<: *base
     build:
@@ -81,11 +81,11 @@ services:
       - .:/app
     depends_on:
       - redis
-  
+
   web:
     <<: *base
-    entrypoint: ./scripts/nginx-entrypoint.sh
-    command: ./scripts/nginx-start.sh
+    entrypoint: ./services/nginx-entrypoint.sh
+    command: ./services/nginx-start.sh
     environment:
       - CLAPBOT_ENVIRON
       - VIRTUAL_HOST
@@ -98,25 +98,25 @@ services:
     networks:
       - reverse-proxy
       - backend
-  
+
   # Celery worker base
   celery.worker:
     <<: *base
-    command: ./scripts/celery-worker.sh
+    command: ./services/celery-worker.sh
     depends_on:
       - db
       - redis
-  
+
   celery.beat:
     <<: *base
-    command: ./scripts/celery-beat.sh
+    command: ./services/celery-beat.sh
     depends_on:
       - redis
-  
+
   # Celery flower
   celery.flower:
     <<: *base
-    command: ./scripts/celery-flower.sh
+    command: ./services/celery-flower.sh
     networks:
       - backend
       - reverse-proxy

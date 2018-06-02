@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
-
 from flask import current_app as app
 
 from celery.schedules import crontab
@@ -12,7 +10,9 @@ from .cl.model import Listing
 from . import location
 from .notify import send_notification
 from .score import score_all
-from .cl import tasks
+
+# pylint: disable=unused-import
+from .cl import tasks  # noqa: F401
 
 
 @celery.task(ignore_result=True)
@@ -30,12 +30,16 @@ def score(listing_id):
 @celery.task(ignore_result=True)
 def notify():
     """Notify by sending an email."""
-    listings = Listing.query.filter(Listing.transit_stop_id != None)
+    # pylint: disable=singleton-comparison
+    listings = Listing.query.filter(
+        Listing.transit_stop_id != None)  # noqa: E711
     listings = listings.order_by(
         Listing.created.desc()).filter_by(notified=False)
     listings = listings.from_self().join(
         UserListingInfo, isouter=True).filter(
-            or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
+            or_(~UserListingInfo.rejected,
+                UserListingInfo.rejected == None))  # noqa: E711
+
     listings = listings.order_by(
         UserListingInfo.score.desc()).filter(UserListingInfo.score > 0)
     listings = listings.limit(app.config['CRAIGSLIST_MAX_MAIL'])
@@ -60,7 +64,7 @@ def location_info(listing_id):
 
 @celery.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-
+    # pylint: disable=unused-argument
     # Executes every hour during the day.
     sender.add_periodic_task(
         crontab(minute=0, hour='0-5,12-23'),

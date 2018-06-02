@@ -7,6 +7,7 @@
             <li>
                 <a href='{{ listing.url }}' target='_blank'>View on Craigslist</a>
             </li>
+            {#
             <li class='listing-form' data-listing-id='{{ listing.id }}'>
             </li>
             <li class='listing-form' data-listing-id='{{ listing.id }}'>
@@ -27,6 +28,7 @@
                     {% endif %}
                 </button>
             </li>
+            #}
         </ul>
     </td>
     <td width='15%' class='listing-main'>
@@ -72,10 +74,12 @@
         </ul>
     </td>
     <td>
+        {#
         <ul class='tags'>
             {% for name, score in listing.score_info|dictsort %} {% if score != 0.0 %}
             <li>{{ name }}: {{ '%.0f' | format(score) }}</li>
             {% endif %} {% endfor %}
         </ul>
+        #}
     </td>
 </tr>

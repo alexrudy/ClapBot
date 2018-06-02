@@ -1,13 +1,12 @@
-import pytest
 import json
-import os
 
-import requests
+import pytest
 
-from celery.result import GroupResult, AsyncResult
+from celery.result import GroupResult
 
 from clapbot.cl import tasks, model
-from clapbot.core import db
+
+# pylint: disable=unused-argument
 
 
 @pytest.mark.celery
@@ -152,8 +151,8 @@ def test_scrape(app, craigslist, celery_app, celery_worker, celery_timeout):
 
 
 @pytest.mark.celery
-def test_image_download(app, monkeypatch, celery_worker, celery_timeout,
-                        nointernet, image):
+def test_image_download_failing(app, monkeypatch, celery_worker,
+                                celery_timeout, nointernet, image):
     """Test the task which downloads an image from craigslist"""
     with app.app_context():
         assert model.Image.query.get(image).full is None
@@ -164,7 +163,7 @@ def test_image_download(app, monkeypatch, celery_worker, celery_timeout,
     result = tasks.download_image.s(image).delay()
     result.get(timeout=celery_timeout, propagate=False)
     assert result.failed()
-    url, count = nointernet.popitem()
+    _, count = nointernet.popitem()
     assert count == max_retries + 1
 
 

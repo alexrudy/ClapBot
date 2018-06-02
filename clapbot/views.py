@@ -48,7 +48,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get('token', '') != app.config['CLAPBOT_PASSWORD_TOKEN']:
-            return redirect(url_for('login', next=request.url))
+            return redirect(url_for('core.login', next=request.url))
         return f(*args, **kwargs)
 
     return decorated_function

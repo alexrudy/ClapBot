@@ -1,8 +1,6 @@
 import random
 import json
 import datetime as dt
-from pathlib import Path
-from functools import wraps
 from typing import NamedTuple, Optional
 
 import requests
@@ -13,7 +11,7 @@ from sqlalchemy.sql.functions import current_date
 from flask import current_app as app
 
 from celery.utils.log import get_task_logger
-from celery.canvas import group, chunks
+from celery.canvas import group
 
 from ..core import db, celery
 from .model import Listing, ListingExpirationCheck, Image
@@ -83,7 +81,7 @@ def download_listing(listing_id, force=False):
                 save=save,
                 description=f"listing for {listing.cl_id}")
         except requests.HTTPError as exc:
-            listing_expiration_check(listing, response.status_code)
+            listing_expiration_check(listing, exc.response.status_code)
             raise
         else:
             listing.parse_html(response.content)
@@ -197,6 +195,7 @@ def export_listing(listing_id, force=False):
 @celery.task()
 def export_listings(force=False):
     """Ensure listing infor is saved to disk."""
+    # pylint: disable=not-an-iterable
     exporters = group([
         export_listing.s(listing.id, force=force) for listing in Listing.query
     ])
@@ -209,6 +208,7 @@ def export_listings(force=False):
 @celery.task()
 def ensure_downloaded(force=False):
     """Ensure that listings and images are downloaded to disk."""
+    # pylint: disable=not-an-iterable
 
     # Can't filter on text==None here because we want to download images as well.
     listings = Listing.query
@@ -253,7 +253,8 @@ def check_expirations(limit=100, force=False):
     """Check whether a bunch of craigslist listing still exist."""
     listings = Listing.query
     if not force:
-        listings = listings.filter(Listing.expired == None)
+        # pylint: disable=singleton-comparison
+        listings = listings.filter(Listing.expired == None)  # noqa: E711
 
     last_checked = func.max(
         ListingExpirationCheck.created).label('last_checked')
