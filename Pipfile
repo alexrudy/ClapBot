@@ -34,6 +34,7 @@ pytest-cov = "*"
 mypy = "*"
 "flake8" = "*"
 yapf = "*"
+pytest-socket = "*"
 
 [requires]
 python_version = "3.6"

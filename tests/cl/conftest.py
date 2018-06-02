@@ -1,19 +1,20 @@
 import os
 import json
+import logging
+from urllib.parse import urlunsplit
 from collections import Counter
 
 import pytest
 
+import requests
+from httmock import urlmatch, HTTMock, all_requests
+
 from clapbot.core import db
 from clapbot.cl import model
 
-import requests
-import logging
-from urllib.parse import urlunsplit
-
-from httmock import urlmatch, HTTMock, all_requests
-
 log = logging.getLogger('__name__')
+
+# pylint: disable=redefined-outer-name,unused-argument
 
 
 @pytest.fixture
@@ -25,8 +26,8 @@ def listing(app):
             url='http://sfbay.craigslist.org/eby/apa/6095797875.html',
             created='2017-04-22 09:26',
             available='2017-05-05',
-            name=
-            '2 Bed - 2 Bath, Open House is this weekend! $2000 off specials!',
+            name='2 Bed - 2 Bath'
+            ', Open House is this weekend! $2000 off specials!',
             price='$3029',
             location='6250 Stoneridge Mall Road, Pleasanton, CA 94588',
             lat=37.6936,
