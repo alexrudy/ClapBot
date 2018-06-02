@@ -3,7 +3,7 @@ FROM tiangolo/uwsgi-nginx:python3.6
 RUN apt-get update -y
 RUN pip install pipenv
 
-ENV FLASK_APP=clapbot
+ENV FLASK_APP=clapbot.app
 
 # By default, allow unlimited file sizes, modify it to limit the file sizes
 # To have a maximum of 1 MB (Nginx's default) change the line to:
@@ -32,12 +32,12 @@ RUN mkdir -p /app
 WORKDIR /app
 
 # Copy the entrypoint that will generate Nginx additional configs
-COPY scripts/nginx-entrypoint.sh /app/scripts/nginx-entrypoint.sh
-RUN chmod +x /app/scripts/nginx-entrypoint.sh
+COPY services/nginx-entrypoint.sh /app/services/nginx-entrypoint.sh
+RUN chmod +x /app/services/nginx-entrypoint.sh
 
 # Copy the entrypoint that will generate Nginx additional configs
-COPY scripts/nginx-entrypoint.sh /app/scripts/entrypoint.sh
-RUN chmod +x /app/scripts/entrypoint.sh
+COPY services/nginx-entrypoint.sh /app/services/entrypoint.sh
+RUN chmod +x /app/services/entrypoint.sh
 
 
 
@@ -49,5 +49,5 @@ RUN pipenv install --deploy --system
 
 COPY . /app
 
-ENTRYPOINT ["scripts/entrypoint.sh"]
-CMD ["scripts/nginx-start.sh"]
+ENTRYPOINT ["services/nginx-entrypoint.sh"]
+CMD ["services/nginx-start.sh"]
