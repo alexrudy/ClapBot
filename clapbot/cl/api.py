@@ -3,14 +3,16 @@ import io
 from flask import Blueprint
 from flask import redirect, url_for, send_file
 
+from flask_login import login_required
+
 from . import tasks as t
 from . import model as m
-from ..views import login_required
 
 #: API Blueprint for craigslist
 bp = Blueprint('cl.api', __name__)
 
-# Task control buttons.
+# Task control buttons:
+# --
 
 
 @bp.route("/scrape")
@@ -34,6 +36,7 @@ def download_all():
 
 
 # Image management items
+# --
 
 
 @bp.route("/image/<int:identifier>/full.jpg")

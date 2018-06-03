@@ -75,6 +75,8 @@ def create_app():
     mail.init_app(app)
     login.init_app(app)
     bcrypt.init_app(app)
+    login.init_app(app)
+    login.login_view = 'auth.login'
 
     Scss(app, static_dir='clapbot/static', asset_dir='clapbot/assets')
     Bootstrap(app)
@@ -87,5 +89,8 @@ def create_app():
 
     from .cl.api import bp as cl_api_bp
     app.register_blueprint(cl_api_bp, url_prefix='/cl/api/v1/')
+
+    from .users.views import auth as auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth/')
 
     return app

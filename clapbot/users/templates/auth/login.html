@@ -1,0 +1,34 @@
+{% extends "base.html" %} {% block title %}Login to ClApBot{% endblock title %} {% block content %}
+
+<div class='login'>
+    <h1 id='welcome'>ClapBot</h1>
+    <p>ClapBot is a personal bot I wrote to find good looking housing opportunities. It's a private matter.
+    </p>
+    <p>If you have an account, log in below using your username and password:</p>
+
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.email.label }}
+            <br> {{ form.email(size=32) }}
+            {% for error in form.email.errors %}
+            <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password.label }}
+            <br> {{ form.password(size=32) }}
+            {% for error in form.password.errors %}
+            <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+
+    <p>New User?
+        <a href="{{ url_for('.register') }}">Click to Register!</a>
+    </p>
+
+</div>
+{% endblock content %}

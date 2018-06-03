@@ -1,7 +1,7 @@
 version: '3.4'
 
 x-service-base: &base
-  restart: unless-stopped
+  restart: 'no'
   build: &base_build
     context: .
     dockerfile: Dockerfile
@@ -39,9 +39,9 @@ services:
 
   db-psql:
     image: postgres
-    command: ['psql', '-h', 'db', '-U', 'postgres']
+    command: ['psql', '--host=db', '--user=postgres', '--dbname=clapbot']
     environment:
-      - PG_PASSWORD=postgres
+      - PGPASSWORD=postgres
     networks:
       - backend
 

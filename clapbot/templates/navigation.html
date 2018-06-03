@@ -1,29 +1,44 @@
-<div id="navigation-bar" class='clearfix'>
-  <div id="name">
-    <span class='logo1'>Clap</span>
-    <span class='logo2'>Bot</span>
+<nav class='navbar navbar-default'>
+  <div id="navigation-bar" class="container">
+    <div id="name" class='navbar-brand'>
+      <span class='logo1'>Clap</span>
+      <span class='logo2'>Bot</span>
+    </div>
+    <ul class='nav navbar-nav'>
+      <li>
+        <a href='{{url_for("core.home")}}'>Home</a>
+      </li>
+    </ul>
+    <ul class='nav navbar-nav'>
+      {% if not current_user.is_anonymous %}
+      <li>
+        <a href='{{url_for("cl.api.scrape")}}'>Scrape!</a>
+      </li>
+      <li>
+        <a href='{{url_for("cl.api.download_all")}}'>Download!</a>
+      </li>
+      <li>
+        <a href='{{url_for("core.mailer")}}'>Email!</a>
+      </li>
+      <li>
+        <a href='{{url_for("core.starred")}}'>Starred</a>
+      </li>
+      <li>
+        <a href='{{url_for("core.settings")}}'>Settings</a>
+      </li>
+      {% endif %}
+    </ul>
+    <ul class='nav navbar-nav navbar-right'>
+      {% if current_user.is_anonymous %}
+      <li>
+        <a href='{{url_for("auth.login")}}'>Login</a>
+      </li>
+
+      {% else %}
+      <li>
+        <a href='{{url_for("auth.logout")}}'>Logout</a>
+      </li>
+      {% endif %}
+    </ul>
   </div>
-  <div id="home">
-    <a href='{{url_for("core.home")}}'>Home</a>
-  </div>
-  {% if session['token'] %}
-  <div>
-    <a href='{{url_for("cl.api.scrape")}}'>Scrape!</a>
-  </div>
-  <div>
-    <a href='{{url_for("cl.api.download_all")}}'>Download!</a>
-  </div>
-  <div>
-    <a href='{{url_for("core.mailer")}}'>Email!</a>
-  </div>
-  <div>
-    <a href='{{url_for("core.starred")}}'>Starred</a>
-  </div>
-  <div>
-    <a href='{{url_for("core.settings")}}'>Settings</a>
-  </div>
-  <div>
-    <a href='{{url_for("core.logout")}}'>Logout</a>
-  </div>
-  {% endif %}
-</div>
+</nav>

@@ -8,6 +8,9 @@ from celery.contrib.testing import tasks  # noqa: F401 pylint: disable=unused-im
 from clapbot.application import create_app
 from clapbot.core import db, celery
 
+from clapbot.users.model import User
+from clapbot.users.forms import LoginForm
+
 # pylint: disable=redefined-outer-name,unused-argument
 
 
@@ -72,13 +75,19 @@ class AuthActions(object):
     def __init__(self, client):
         self._client = client
 
-    def login(self, username='test', password='test'):
-        return self._client.post('/login', data={'Password': password})
+    def login(self, email='test', password='test'):
+        return self._client.post(
+            '/auth/login', data=dict(email=email, password=password))
 
     def logout(self):
         return self._client.get('/logout')
 
 
 @pytest.fixture
-def auth(client):
+def auth(app, client):
+    with app.app_context():
+        user = User(email='test')
+        user.set_password('test')
+        db.session.add(user)
+        db.session.commit()
     return AuthActions(client)

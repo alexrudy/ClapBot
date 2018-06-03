@@ -1,3 +1,5 @@
+import enum
+
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -25,6 +27,12 @@ class Role(db.Model):
                 and self.name != getattr(other, 'name', None))
 
 
+class UserStatus(enum.Enum):
+    registered = 1
+    active = 2
+    deactivated = 3
+
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
@@ -32,7 +40,9 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255))
     password = db.Column(db.String(120))
 
-    created = db.Column(db.Datetime)
+    status = db.Column(
+        db.Enum(UserStatus), default=UserStatus.registered, nullable=False)
+    created = db.Column(db.DateTime)
 
     roles = db.relationship(
         'Role',

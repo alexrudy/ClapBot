@@ -1,18 +1,21 @@
 version: '3.4'
 
 services:
-  
+
   db:
     environment:
       - POSTGRES_DB=clapbotdev
-  
+
+  db-psql:
+    command: ['psql', '--host=db', '--user=postgres', '--dbname=clapbotdev']
+
   web:
     volumes:
       - .:/app
     environment:
       - CLAPBOT_ENVIRON=dev
       - VIRTUAL_HOST=clapbot.local
-  
+
   flask.debug:
     volumes:
       - .:/app
@@ -24,7 +27,7 @@ services:
     networks:
       - backend
       - reverse-proxy
-  
+
   celery.flower:
     volumes:
       - .:/app
@@ -32,13 +35,13 @@ services:
       - CLAPBOT_ENVIRON=dev
       - VIRTUAL_HOST=flower.clapbot.local
       - VIRTUAL_PORT=5555
-  
+
   celery.worker:
     environment:
       - CLAPBOT_ENVIRON=dev
     volumes:
       - .:/app
-  
+
   celery.beat:
     environment:
       - CLAPBOT_ENVIRON=dev

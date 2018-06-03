@@ -4,8 +4,12 @@ import io
 import datetime as dt
 from functools import wraps
 from sqlalchemy import or_
+
 from flask import Blueprint, render_template, send_file, redirect, session, request, url_for, jsonify
 from flask import current_app as app
+
+from flask_login import login_required
+
 import redis
 
 from .core import db, bcrypt
@@ -44,16 +48,6 @@ def healthcheck():
     return jsonify(info)
 
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get('token', '') != app.config['CLAPBOT_PASSWORD_TOKEN']:
-            return redirect(url_for('core.login', next=request.url))
-        return f(*args, **kwargs)
-
-    return decorated_function
-
-
 @bp.route("/mail")
 @login_required
 def mailer():
@@ -61,24 +55,6 @@ def mailer():
     from .tasks import notify
     notify.delay()
     return redirect(url_for('home'))
-
-
-@bp.route('/logout')
-def logout():
-    """Log the user out."""
-    session.pop('token', '')
-    return redirect(url_for('login'))
-
-
-@bp.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        if bcrypt.check_password_hash(app.config['CLAPBOT_PASSWORD_HASH'],
-                                      request.form['Password']):
-            session['token'] = app.config['CLAPBOT_PASSWORD_TOKEN']
-        return redirect(request.form['Redirect'])
-    else:
-        return render_template("login.html")
 
 
 @bp.route("/latest")
