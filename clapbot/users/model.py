@@ -58,6 +58,10 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
+    @property
+    def is_active(self):
+        return self.status == UserStatus.active
+
 
 @login.user_loader
 def load_user(id):
