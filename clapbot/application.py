@@ -53,6 +53,7 @@ def create_app():
     del app.logger.handlers[:]  # pylint: disable=no-member
     app.logger.propogate = True
     app.config.from_object('clapbot.defaults')
+    app.config['CLAPBOT_CONFIG_DIR'] = str(Path.cwd())
 
     if os.environ.get('CLAPBOT_SETTINGS', ''):
         app.config.from_envvar('CLAPBOT_SETTINGS')
@@ -64,6 +65,7 @@ def create_app():
         path = Path.cwd(
         ) / 'config' / os.environ['CLAPBOT_ENVIRON'] / 'clapbot.cfg'
         if path.exists():
+            app.config['CLAPBOT_CONFIG_DIR'] = str(path.parent)
             app.config.from_pyfile(str(path))
             app.logger.info(  # pylint: disable=no-member
                 f"Loaded configuration from {path!s} via CLAPBOT_ENVIRON")

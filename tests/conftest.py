@@ -14,12 +14,27 @@ from clapbot.users.forms import LoginForm
 # pylint: disable=redefined-outer-name,unused-argument
 
 
+def run_script(engine, script):
+    connection = engine.raw_connection()
+    try:
+        cursor = connection.cursor()
+        cursor.executescript(script)
+        cursor.close()
+        connection.commit()
+    finally:
+        connection.close()
+
+
 @pytest.fixture
 def app(tmpdir):
     app = create_app()
 
     with app.app_context():
         db.create_all()
+
+        script = Path(app.config["CLAPBOT_CONFIG_DIR"]) / 'clapbot.sql'
+        if script.exists():
+            run_script(db.engine, script.read_text())
 
         path = Path(tmpdir) / 'data' / 'cl'
         path.mkdir(parents=True, exist_ok=True)
@@ -80,14 +95,9 @@ class AuthActions(object):
             '/auth/login', data=dict(email=email, password=password))
 
     def logout(self):
-        return self._client.get('/logout')
+        return self._client.get('/auth/logout')
 
 
 @pytest.fixture
-def auth(app, client):
-    with app.app_context():
-        user = User(email='test')
-        user.set_password('test')
-        db.session.add(user)
-        db.session.commit()
+def auth(client):
     return AuthActions(client)
