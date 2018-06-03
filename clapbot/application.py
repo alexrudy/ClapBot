@@ -92,8 +92,11 @@ def create_app():
     from .cl.api import bp as cl_api_bp
     app.register_blueprint(cl_api_bp, url_prefix='/cl/api/v1/')
 
-    from .users.views import auth as auth_bp
+    from .users.auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth/')
+
+    from .users.views import bp as user_bp
+    app.register_blueprint(user_bp, url_prefix='/users/')
 
     @app.after_request
     def add_header(r):

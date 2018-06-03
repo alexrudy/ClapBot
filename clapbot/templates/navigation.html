@@ -42,11 +42,14 @@
       </li>
 
       {% else %}
+      <li class="nav-item {% if active_page == 'profile' %}active{% endif %}">
+          <a href='{{ url_for("user.profile", username=current_user.username) }}'>Profile</a>
+      </li>
       <li class="nav-item {% if active_page == 'settings' %}active{% endif %}">
-          <a href='{{url_for("core.settings")}}'>Settings</a>
-        </li>
+          <a href='{{ url_for("core.settings") }}'>Settings</a>
+      </li>
       <li>
-        <a href='{{url_for("auth.logout")}}'>Logout</a>
+        <a href='{{ url_for("auth.logout") }}'>Logout</a>
       </li>
       {% endif %}
     </ul>
