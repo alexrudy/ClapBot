@@ -1,142 +1,19 @@
 a {
     text-decoration: none
 }
-article {
-    margin-left: 20px
-}
-#article {
-//    width: 98%
-}
 
-.login {
-    width: 500px;
-    h1 {
-        text-align: center;
+.listing-main .dl-horizontal {
+    dt {
+    width: 5em;
+    }
+    dd {
+        width: 8em;
+        margin-left: 6em;
     }
 }
 
-// #name {
-
-//     text-decoration: underline;
-
-//     .logo1 {
-//         color: #66FFEF;
-//     }
-//     .logo2 {
-//         color: white;
-//     }
-// }
-
-// .tags {
-//     font-size: 0.5em;
-//     list-style: none;
-//     padding-left: 0px;
-//     display: inline;
-
-//     li {
-//         display: list-item flow;
-//         background-color: #7DC2CC;
-//         border-radius: 2px;
-//         margin: 2px;
-//         padding: 2px;
-//     }
-// }
-
-// .listing-main, .listing-location {
-//     p {
-//         margin: 0px;
-//     }
-// }
 
 article {
     margin-left: 1em;
     margin-right: 1em;
 }
-
-// .mobile {
-//     h3 {
-//         margin: 0em;
-//     }
-//     p {
-//         margin: 0em;
-//     }
-//     .listing-images {
-//         margin-left: auto;
-//         margin-right: auto;
-//         width: 80%;
-//         img {
-//             max-width: 100%;
-//         }
-//     }
-//     .listing-form {
-//         margin-left: auto;
-//         margin-right: auto;
-//         width: 210px;
-//     }
-//     .listing-text {
-//         font-size: 0.75em;
-//         p {
-//             margin-right: 2em;
-//         }
-//     }
-//     .listing-info {
-//         font-size: 0.75em;
-//         div {
-//             padding: 5px;
-//         }
-//     }
-// }
-
-.featherlight-content {
-    max-width:100%;
-}
-.featherlight .featherlight-image {
-    width: auto !important;
-    max-width: 100%;
-}
-
-
-.listing-links ul {
-    list-style: none;
-    padding-left: 0px;
-}
-
-.float-left {
-    float: left;
-}
-.float-right {
-    float: right;
-}
-
-// .mobile {
-//     .listing-form {
-//         button {
-//             width: 50px;
-//             height: 50px;
-//             font-size: 2em;
-//         }
-//     }
-// }
-
-
-
-// #navigation-bar {
-
-//     background-color: blue;
-//     color: white;
-//     font-weight: bold;
-//     font-size: 1.2em;
-//     padding: 0px 10px;
-
-//     div {
-//         padding: 20px 10px;
-//         float: left;
-//         display: inline-block;
-//         a, a:visited {
-//             color: white;
-//         }
-//     }
-
-
-
-// }

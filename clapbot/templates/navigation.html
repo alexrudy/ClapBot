@@ -1,31 +1,38 @@
+{% set active_page = active_page|default('index') -%}
 <nav class='navbar navbar-default'>
   <div id="navigation-bar" class="container">
     <div id="name" class='navbar-brand'>
-      <span class='logo1'>Clap</span>
-      <span class='logo2'>Bot</span>
+      ClapBot
     </div>
     <ul class='nav navbar-nav'>
-      <li>
-        <a href='{{url_for("core.home")}}'>Home</a>
+      <li class="nav-item {% if active_page == 'index' %}active{% endif %}">
+        <a href='{{ url_for("core.home") }}'>Home</a>
       </li>
     </ul>
     <ul class='nav navbar-nav'>
       {% if not current_user.is_anonymous %}
-      <li>
-        <a href='{{url_for("cl.api.scrape")}}'>Scrape!</a>
-      </li>
-      <li>
-        <a href='{{url_for("cl.api.download_all")}}'>Download!</a>
-      </li>
-      <li>
-        <a href='{{url_for("core.mailer")}}'>Email!</a>
-      </li>
-      <li>
-        <a href='{{url_for("core.starred")}}'>Starred</a>
-      </li>
-      <li>
-        <a href='{{url_for("core.settings")}}'>Settings</a>
-      </li>
+      <li class="nav-item {% if active_page == 'starred' %}active{% endif %}">
+          <a href='{{url_for("core.starred")}}'><span class="glyphicon glyphicon-star"></span> Starred</a>
+        </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Actions<span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <li class='nav-item dropdown-item'>
+              <a href='{{url_for("cl.api.scrape", next=request.url)}}' alt='Get new listings from Craigslist'>
+                Scrape <span class='glyphicon glyphicon-refresh'></span>
+              </a>
+          </li>
+          <li class='nav-item dropdown-item'>
+              <a href='{{url_for("cl.api.download_all", next=request.url)}}' alt='Ensure all metadata is downloaded'>
+                  Download <span class='glyphicon glyphicon-cloud-download'></span>
+              </a>
+          </li>
+          <li class='nav-item dropdown-item'>
+              <a href='{{url_for("core.mailer")}}'>Send Email</a>
+          </li>
+        </ul>
       {% endif %}
     </ul>
     <ul class='nav navbar-nav navbar-right'>
@@ -35,6 +42,9 @@
       </li>
 
       {% else %}
+      <li class="nav-item {% if active_page == 'settings' %}active{% endif %}">
+          <a href='{{url_for("core.settings")}}'>Settings</a>
+        </li>
       <li>
         <a href='{{url_for("auth.logout")}}'>Logout</a>
       </li>

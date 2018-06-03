@@ -1,8 +1,17 @@
-{% extends "index.html" %} {% from "_pagination.html" import render_pagination %} {% block title %}ClApBot {{ title|default('Settings')}}{%
-endblock title %} {% block content %}
-<h1>ClapBot: Settings</h1>
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}
+ClApBot {{ title|default('Settings')}}
+{% endblock title %}
 
-<div class='settings'>
+{% set active_page = 'settings' -%}
+
+{% block content %}
+<div class='container'>
+<h1>ClapBot: Settings</h1>
+</div>
+
+<div class='container settings'>
   <h2>Configuration</h2>
   <table border="0" cellspacing="5" cellpadding="5">
     <tr>

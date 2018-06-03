@@ -90,6 +90,18 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
 
+    @property
+    def display_name(self):
+        """Short display name"""
+        name = self.name
+        if ' - ' in name:
+            name = name.split(' - ')[0].strip()
+        if name.endswith('are OK'):
+            name = name.replace('are OK', 'OK')
+        if 'w/d ' in name:
+            name = name.replace('w/d ', 'W/D ')
+        return name
+
 
 class Listing(db.Model):
     """Craigslist Listing"""

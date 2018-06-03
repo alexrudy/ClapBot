@@ -1,11 +1,11 @@
 <tr id='listing-{{ listing.id }}'>
-    <td class='listing-links' width='20%'>
+    <td class='listing-links' width='15%'>
         <p>
             <a href='{{ url_for("core.listing", id=listing.id) }}' target='_blank'>{{ listing.name }}</a>
         </p>
-        <ul>
+        <ul class='list-unstyled'>
             <li>
-                <a href='{{ listing.url }}' target='_blank'>View on Craigslist</a>
+                <a href='{{ listing.url }}' target='_blank'>View on Craigslist <span class='glyphicon glyphicon-share-alt'></span></a>
             </li>
             {#
             <li class='listing-form' data-listing-id='{{ listing.id }}'>
@@ -31,31 +31,37 @@
             #}
         </ul>
     </td>
-    <td width='15%' class='listing-main'>
-        <p>${{ '%.2f' | format(listing.price) }}</p>
-        {% if listing.bedrooms or listing.bathrooms %}
-        <p>Bed/Ba: {{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}</p>
-        {% endif %} {% if listing.size %}
-        <p>
-            <strong>Area:</strong> {{ '%.0f sqare ft'|format(listing.size) }}</p>
-        {% endif %}
-        <p>Created: {{ listing.created.strftime("%Y-%m-%d") }}</p>
-        <p>Available: {{ listing.available | default('', true) }}</p>
+    <td class='listing-main'>
+        <dl class="dl-horizontal" width='15%'>
+            <dt>Rent:</dt>
+            <dd>${{ '%.2f' | format(listing.price) }}</dd>
+            {% if listing.bedrooms or listing.bathrooms %}
+            <dt>Bed/Ba:</dt> <dd>{{ listing.bedrooms | default('0', true) }} / {{ listing.bathrooms | default('0', true) }}</dd>
+            {% endif %} {% if listing.size %}
+                <dt>Area:</dt>
+                <dd>{{ '%.0f sqare ft'|format(listing.size) }}</dd>
+            {% endif %}
+            <dt>Created:</dt> <dd>{{ listing.created.strftime("%Y-%m-%d") }}</dd>
+            <dt>Available:</dt>
+            <dd>{{ listing.available | default('', true) }}</dd>
+        </dl>
 
     </td>
-    <td width='40%'>
+    <td width='30%'>
         <div data-featherlight-gallery data-featherlight-filter="a">
             {% for image in listing.images %}
-            <a href='{{ url_for("cl.api.image", identifier=image.id) }}'>
-                <img src='{{ url_for("cl.api.thumbnail", identifier=image.id) }}' height=50 width=50>
-            </a>
+                <a href='{{ url_for("cl.api.image", identifier=image.id) }}'>
+                    <img src='{{ url_for("cl.api.thumbnail", identifier=image.id) }}' class='img-thumbnail' height=50 width=50>
+                </a>
             {% endfor %}
         </div>
-
     </td>
     <td class='listing-location'>
         <p>
-            <a href='http://maps.google.com/?q={{listing.lat}},{{listing.lon}}' target='_blank'>{{ listing.location | default('', true) | truncate(120) }}</a>
+            <a href='http://maps.google.com/?q={{listing.lat}},{{listing.lon}}' target='_blank'>
+                {{ listing.location | default('', true) | truncate(120) | title }}
+                <span class='glyphicon glyphicon-globe'></span>
+            </a>
         </p>
         <p>
             {% if listing.transit_stop %}
@@ -63,13 +69,13 @@
             }}km {% endif %}
         </p>
         {% if listing.lat != None %}
-        <p>Work: {{ '%.1f' | format(listing.distance_to_work()) }}km</p>
+        <p><strong>Work:</strong> {{ '%.1f' | format(listing.distance_to_work()) }}km</p>
         {% endif %}
     </td>
     <td>
-        <ul class='tags'>
+        <ul class='tags list-unstyled'>
             {% for tag in listing.tags %} {% if "2017" not in tag.name %}
-            <li>{{ tag.name }}</li>
+            <li><span class="label label-default">{{ tag.display_name }}</span></li>
             {% endif %} {% endfor %}
         </ul>
     </td>

@@ -1,10 +1,19 @@
-{% extends "base.html" %} {% from "_pagination.html" import render_pagination %} {% block title %}ClApBot {{ title|default
-}}{% endblock title %} {% block content %}
-<h1>ClapBot</h1>
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}
+ClApBot {{ title|default }}
+{% endblock title %}
 
-<div class='listings'>
+{% set active_page = active_page|default('index') %}
+
+{% block content %}
+<div class='container'>
+    <h1>ClapBot</h1>
+</div>
+
+<div class='container listings'>
   {% set pagination = listings.paginate() %} {{ render_pagination(pagination, request.endpoint) }}
-  <table border="0" cellspacing="5" cellpadding="5">
+  <table border="0" cellspacing="5" cellpadding="5" class="table table-hover">
     <thead>
       {% include "_entry_header.html" %}
     </thead>

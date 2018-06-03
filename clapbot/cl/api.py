@@ -1,8 +1,9 @@
 import io
 
 from flask import Blueprint
-from flask import redirect, url_for, send_file
+from flask import request, redirect, url_for, send_file
 
+from werkzeug.urls import url_parse
 from flask_login import login_required
 
 from . import tasks as t
@@ -15,12 +16,19 @@ bp = Blueprint('cl.api', __name__)
 # --
 
 
+def next_url(request, default='core.home'):
+    next_page = request.args.get('next')
+    if not next_page or url_parse(next_page).netloc != '':
+        next_page = url_for(default)
+    return next_page
+
+
 @bp.route("/scrape")
 @login_required
 def scrape():
     """Scrape craigslist now!"""
     result = t.scrape.delay()
-    response = redirect(url_for('core.home'))
+    response = redirect(next_url(request))
     response.headers['X-result-token'] = result.id
     return response
 
@@ -30,7 +38,7 @@ def scrape():
 def download_all():
     """Ensure all listings are downloaded"""
     result = t.ensure_downloaded.delay()
-    response = redirect(url_for('core.home'))
+    response = redirect(next_url(request))
     response.headers['X-result-token'] = result.id
     return response
 

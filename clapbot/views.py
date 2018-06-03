@@ -148,7 +148,8 @@ def starred():
             or_(~UserListingInfo.rejected, UserListingInfo.rejected == None),
             UserListingInfo.starred == True)
     listings = listings.order_by(UserListingInfo.score.desc())
-    return render_template("home.html", listings=listings, title='Starred')
+    return render_template(
+        "home.html", listings=listings, title='Starred', active_page='starred')
 
 
 @bp.route("/listing/<int:id>/star", methods=['POST'])

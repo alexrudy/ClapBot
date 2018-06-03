@@ -1,31 +1,12 @@
 a {
   text-decoration: none; }
 
-  article {
-    margin-left: 20px; }
-
-    .login {
-      width: 500px; }
-      .login h1 {
-        text-align: center; }
+  .listing-main .dl-horizontal dt {
+    width: 5em; }
+    .listing-main .dl-horizontal dd {
+      width: 8em;
+      margin-left: 6em; }
 
 article {
   margin-left: 1em;
   margin-right: 1em; }
-
-  .featherlight-content {
-    max-width: 100%; }
-
-    .featherlight .featherlight-image {
-      width: auto !important;
-      max-width: 100%; }
-
-      .listing-links ul {
-        list-style: none;
-        padding-left: 0px; }
-
-        .float-left {
-          float: left; }
-
-          .float-right {
-            float: right; }
