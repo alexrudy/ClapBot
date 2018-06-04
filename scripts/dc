@@ -13,4 +13,4 @@ if [ ! -e "$OVERRIDES" ]; then
 fi
 
 echo "Using overrides from $OVERRIDES"
-docker-compose -f docker-compose.yml -f "$OVERRIDES" $@
+docker-compose -f docker-compose.yml -f "$OVERRIDES" "$@"
