@@ -6,6 +6,7 @@ from typing import NamedTuple, Optional
 import requests
 
 from sqlalchemy import func
+from sqlalchemy import not_
 from sqlalchemy.sql.functions import current_date
 
 from flask import current_app as app
@@ -16,6 +17,7 @@ from celery.canvas import group
 from ..core import db, celery
 from .model import Listing, ListingExpirationCheck, Image
 from . import scrape as cl_scrape
+from . import sites as cl_sites
 
 __all__ = ['download_listing', 'download_image']
 
@@ -250,6 +252,18 @@ def check_expiration(listing_id):
 
 
 @celery.task()
+def get_craigslist_info():
+    """Grab top-level craigslist info."""
+    cl_sites.get_all_sites()
+
+
+@celery.task()
+def get_craigslist_site_info(site):
+    """Grab craigslist site info."""
+    cl_sites.get_all_areas(site)
+
+
+@celery.task()
 def check_expirations(limit=100, force=False):
     """Check whether a bunch of craigslist listing still exist."""
     listings = Listing.query
@@ -259,15 +273,17 @@ def check_expirations(limit=100, force=False):
 
     last_checked = func.max(
         ListingExpirationCheck.created).label('last_checked')
-    checks = db.session.query(ListingExpirationCheck.listing_id,
-                              last_checked).group_by(
-                                  ListingExpirationCheck.listing_id)
+    checks = db.session.query(
+        ListingExpirationCheck.listing_id, last_checked).group_by(
+            ListingExpirationCheck.listing_id).subquery()
 
-    listings = listings.join(checks)
-    listings.order_by(last_checked)
+    listings = listings.join(checks, isouter=True)
+    listings = listings.order_by(checks.c.last_checked)
     if not force:
-        listings.filter(current_date - last_checked > dt.timedelta(days=2))
-    listings.limit(limit)
+        listings = listings.filter(
+            not_(dt.datetime.now() -
+                 checks.c.last_checked <= dt.timedelta(days=2)))
+    listings = listings.limit(limit)
 
     g = group([check_expiration.si(listing.id) for listing in listings])
     result = g.delay()

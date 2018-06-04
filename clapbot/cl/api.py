@@ -23,11 +23,41 @@ def next_url(request, default='core.home'):
     return next_page
 
 
+@bp.route("/sites/<site>")
+@login_required
+def site(site):
+    """Grab craigslist sites now!"""
+    result = t.get_craigslist_site_info.s(site).delay()
+    response = redirect(next_url(request))
+    response.headers['X-result-token'] = result.id
+    return response
+
+
+@bp.route("/sites")
+@login_required
+def sites():
+    """Grab craigslist sites now!"""
+    result = t.get_craigslist_info.delay()
+    response = redirect(next_url(request))
+    response.headers['X-result-token'] = result.id
+    return response
+
+
 @bp.route("/scrape")
 @login_required
 def scrape():
     """Scrape craigslist now!"""
     result = t.scrape.delay()
+    response = redirect(next_url(request))
+    response.headers['X-result-token'] = result.id
+    return response
+
+
+@bp.route("/expire")
+@login_required
+def expire():
+    """Scrape craigslist now!"""
+    result = t.check_expirations.delay()
     response = redirect(next_url(request))
     response.headers['X-result-token'] = result.id
     return response

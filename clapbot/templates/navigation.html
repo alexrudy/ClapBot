@@ -30,7 +30,14 @@
               </a>
           </li>
           <li class='nav-item dropdown-item'>
-              <a href='{{url_for("core.mailer")}}'>Send Email</a>
+              <a href='{{url_for("core.mailer")}}'>Send Email
+                <span class='glyphicon glyphicon-envelope'></span>
+              </a>
+          </li>
+          <li class='nav-item dropdown-item'>
+              <a href='{{url_for("cl.api.expire")}}'>Expire
+                <span class='glyphicon glyphicon-refresh'></span>
+              </a>
           </li>
         </ul>
       {% endif %}

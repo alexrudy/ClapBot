@@ -2,6 +2,7 @@ import base64
 import logging
 import datetime as dt
 import urllib.parse
+
 from pathlib import Path
 
 from flask import current_app as app
@@ -332,3 +333,46 @@ class ListingExpirationCheck(db.Model):
 
     created = db.Column(db.DateTime)
     response_status = db.Column(db.Integer)
+
+
+class CraigslistSite(db.Model):
+    __tablename__ = 'clsite'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(255))
+    enabled = db.Column(db.Boolean())
+
+    def __str__(self):
+        return self.name.upper()
+
+    @property
+    def url(self):
+        return f'http://{self.name}.craigslist.org'
+
+    @validates('areas')
+    def validate_areas(self, key, name):
+        """Validate tag lists"""
+        # pylint: disable=unused-argument
+        if isinstance(name, CraigslistArea):
+            return name
+        area = CraigslistArea.query.filter_by(
+            name=name, site=self).one_or_none()
+        if area is not None:
+            return area
+        area = CraigslistArea(name=name, site=self)
+        db.session.add(area)
+        return area
+
+
+class CraigslistArea(db.Model):
+    __tablename__ = 'clarea'
+    id = db.Column(db.Integer(), primary_key=True)
+    site_id = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
+    site = db.relationship(
+        'CraigslistSite', backref=db.backref('areas', uselist=True))
+    name = db.Column(db.String(255))
+
+
+class CraigslistCategory(db.Model):
+    __tablename__ = 'clcategory'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(255))

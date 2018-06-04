@@ -11,6 +11,14 @@ ClApBot {{ title|default('Settings')}}
 <h1>ClapBot: Settings</h1>
 </div>
 
+{% if 'administrator' in current_user.roles %}
+<div class='container'>
+  <h2>Administration</h2>
+    <a class="btn btn-default" href="{{ url_for('cl.api.sites', next=request.path)}}" role="button">Refresh CL Info <span class='glyphicon glyphicon-refresh'></span></a>
+    <a class="btn btn-default" href="{{ url_for('cl.api.site', site='sfbay', next=request.path)}}" role="button">Refresh SFBAY Info <span class='glyphicon glyphicon-refresh'></span></a>
+</div>
+{% endif %}
+
 <div class='container settings'>
   <h2>Configuration</h2>
   <table border="0" cellspacing="5" cellpadding="5">

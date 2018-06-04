@@ -63,6 +63,10 @@ class User(db.Model, UserMixin):
     def is_active(self):
         return self.status == UserStatus.active
 
+    @property
+    def censored_email(self):
+        return "***@" + self.email.split("@", 1)[1]
+
 
 @login.user_loader
 def load_user(id):

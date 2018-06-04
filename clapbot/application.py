@@ -98,6 +98,9 @@ def create_app():
     from .users.views import bp as user_bp
     app.register_blueprint(user_bp, url_prefix='/users/')
 
+    from .search.views import bp as hs_bp
+    app.register_blueprint(hs_bp, url_prefix='/hs/')
+
     @app.after_request
     def add_header(r):
         """

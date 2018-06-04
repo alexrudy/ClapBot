@@ -23,6 +23,7 @@ flask-restful = "*"
 flask-bootstrap = "*"
 flask-login = "*"
 flask-wtf = "*"
+wtforms = ">=2.2"
 
 [dev-packages]
 pytest = "*"

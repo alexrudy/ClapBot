@@ -2,7 +2,22 @@
 {% set active_page = 'profile' %}
 {% block content %}
     <div class='container'>
-    <h1>User: @{{ user.username }}</h1>
+    <h1>@{{ user.username }}</h1>
     <hr>
+    <dl>
+        <dt>Username</dt><dd>{{ user.username }}</dd>
+        <dt>Email</dt><dd>
+            {% if user == current_user %}{{ user.email }}{% else %}
+        {{ user.censored_email }}{% endif %}</dd>
+        <dt>Status</dt><dd>{{ user.status.name | upper }}</dd>
+    </dl>
+    <hr>
+        {% set searches = user.housing_searches %}
+        {% include "search/_searches.html" %}
     </div>
+    <div class='container'>
+            <p>
+                <a href="{{ url_for('search.create')}}">Create a new search</a>
+            </p>
+        </div>
 {% endblock %}

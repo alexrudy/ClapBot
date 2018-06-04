@@ -1,0 +1,24 @@
+<table class='table'>
+        <thead>
+            <tr>
+                <th>Site</th>
+                <th>Area</th>
+                <th>Description</th>
+                <th>Target Move-in Date</th>
+                <th>Expiration Date</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for search in searches %}
+            <tr>
+                <td>{{ search.site.name|upper }}</td>
+                <td>{{ search.area.name|upper }}</td>
+                <td>{{ search.description }}</td>
+                <td>{{ search.target_date }}</td>
+                <td>{{ search.expiration_date }}</td>
+                <td>@{{ search.owner.username }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
