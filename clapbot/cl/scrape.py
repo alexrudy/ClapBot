@@ -25,21 +25,27 @@ def safe_iterator(iterable, limit):
             yield gen
 
 
-def create_scraper(app, site=None, area=None):
+def create_scraper(app, site=None, area=None, category=None, filters=None):
     """Create a craigslist downloader from the settings in the app."""
     import craigslist
     site = site or app.config['CRAIGSLIST_SITE']
     area = area or app.config['CRAIGSLIST_AREA']
+    category = category or app.config['CRAIGSLIST_CATEGORY']
+    filters = filters if filters is not None else app.config[
+        'CRAIGSLIST_FILTERS']
     return craigslist.CraigslistHousing(
-        site=site,
-        area=area,
-        category=app.config['CRAIGSLIST_CATEGORY'],
-        filters=app.config['CRAIGSLIST_FILTERS'])
+        site=site, area=area, category=category, filters=filters)
 
 
-def iter_scraped_results(app, site=None, area=None, limit=20):
+def iter_scraped_results(app,
+                         site=None,
+                         area=None,
+                         category=None,
+                         filters=None,
+                         limit=20):
     """Do a single scrape from craigslist and commit to the database."""
-    query = create_scraper(app, site=site, area=area)
+    query = create_scraper(
+        app, site=site, area=area, category=category, filters=filters)
     for result in safe_iterator(
             query.get_results(sort_by='newest', geotagged=False, limit=limit),
             limit=limit):

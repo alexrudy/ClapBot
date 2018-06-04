@@ -5,6 +5,7 @@ Create a new Housing Search
 {% endblock title %}
 
 {% set active_page = 'housing-search' %}
+{% from "_form.html" import long_form %}
 
 {% block content %}
 <div class='container'>
@@ -14,33 +15,7 @@ Create a new Housing Search
 <div class='container'>
     <div class='row'>
         <div class='col-md-5'>
-    <form action="", method="POST">
-        {{ form.hidden_tag() }}
-        <p class="form-group {% if form.description.errors %}has-warning{% endif %}">
-            {{ form.description.label }}
-            {{ form.description(class="form-control") }}
-            {% for error in form.description.errors %}
-            <span style="color: red;">{{ error }}</span>
-            {% endfor %}
-        </p>
-        <p class="form-group {% if form.target_date.errors %}has-warning{% endif %}">
-                {{ form.target_date.label }}
-                {{ form.target_date(class="form-control") }}
-                {% for error in form.target_date.errors %}
-                <span style="color: red;">{{ error }}</span>
-                {% endfor %}
-        </p>
-        <p class="form-group {% if form.site.errors %}has-warning{% endif %}">
-                {{ form.site.label }}
-                {{ form.site(class="form-control") }}
-                {% for error in form.site.errors %}
-                <span style="color: red;">{{ error }}</span>
-                {% endfor %}
-        </p>
-        <p class="form-group">
-            {{ form.submit(class="btn btn-primary") }}
-        </p>
-    </form>
+    {{ long_form(form) }}
     </div>
 </div>
 </div>

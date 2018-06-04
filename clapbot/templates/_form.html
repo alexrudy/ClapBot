@@ -1,0 +1,15 @@
+{% macro form_field(field) %}
+{{ field.label }}
+{{ field(class="form-control") }}
+{% for error in field.errors %}
+<span style="color: red;">{{ error }}</span>
+{% endfor %}
+{% endmacro %}
+
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% macro long_form(form, action='', method='POST') %}
+<form action="{{ action }}" method="{{ method|default('POST') }}">
+    {{ wtf.quick_form(form, button_map={'submit':'primary'}) }}
+</form>
+{% endmacro %}

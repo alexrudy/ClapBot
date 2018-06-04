@@ -43,9 +43,7 @@ class Image(db.Model):
     @property
     def cache_path(self):
         """Where to find cached image files."""
-        path = Path(
-            app.config['CRAIGSLIST_CACHE_PATH']) / 'images' / '{}'.format(
-                self.cl_id)[:3]
+        path = Path(app.config['CRAIGSLIST_CACHE_PATH']) / 'images' / '{}'.format(self.cl_id)[:3]
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -80,8 +78,7 @@ class Image(db.Model):
         else:
             scheme, netloc, path, query, fragment = url
             path = self.cl_id + "_50x50c.jpg"
-            return urllib.parse.urlunsplit((scheme, netloc, path, query,
-                                            fragment))
+            return urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))
 
 
 class Tag(db.Model):
@@ -124,9 +121,7 @@ class Listing(db.Model):
 
     area = db.Column(db.String)
     transit_stop_id = db.Column(db.Integer, db.ForeignKey("transitstop.id"))
-    transit_stop = db.relationship(
-        "clapbot.model.TransitStop",
-        backref=db.backref('listings', lazy='dynamic'))
+    transit_stop = db.relationship("clapbot.model.TransitStop", backref=db.backref('listings', lazy='dynamic'))
 
     bedrooms = db.Column(db.Integer)
     bathrooms = db.Column(db.Integer)
@@ -135,12 +130,8 @@ class Listing(db.Model):
     text = db.Column(db.Text)
     page = db.Column(db.Text)
 
-    tags = db.relationship(
-        'Tag', secondary=tags, backref=db.backref('listings', lazy='dynamic'))
-    images = db.relationship(
-        'Image',
-        secondary=images,
-        backref=db.backref('listings', lazy='dynamic'))
+    tags = db.relationship('Tag', secondary=tags, backref=db.backref('listings', lazy='dynamic'))
+    images = db.relationship('Image', secondary=images, backref=db.backref('listings', lazy='dynamic'))
 
     notified = db.Column(db.Boolean, default=False)
 
@@ -155,9 +146,7 @@ class Listing(db.Model):
     @property
     def cache_path(self):
         """Where to find cached listings"""
-        path = Path(
-            app.config['CRAIGSLIST_CACHE_PATH']) / 'listings' / '{}'.format(
-                self.cl_id)[:3]
+        path = Path(app.config['CRAIGSLIST_CACHE_PATH']) / 'listings' / '{}'.format(self.cl_id)[:3]
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -262,8 +251,7 @@ class Listing(db.Model):
         # Extract geotag:
         map_tag = soup.find('div', {'id': 'map'})
         if map_tag:
-            self.lat, self.lon = (float(map_tag.attrs['data-latitude']),
-                                  float(map_tag.attrs['data-longitude']))
+            self.lat, self.lon = (float(map_tag.attrs['data-latitude']), float(map_tag.attrs['data-longitude']))
 
         # Extract images:
         images_div = soup.find("div", {'id': 'thumbs'})
@@ -287,38 +275,27 @@ class Listing(db.Model):
         self.text = soup.find("section", {'id': 'postingbody'}).text
 
         # Extract tags
-        for attrgroup in soup.find('div', {
-                'class': 'mapAndAttrs'
-        }).find_all('p', {'class': 'attrgroup'}):
+        for attrgroup in soup.find('div', {'class': 'mapAndAttrs'}).find_all('p', {'class': 'attrgroup'}):
             for attr in attrgroup.find_all('span'):
                 if 'class' in attr.attrs and 'property_date' in attr['class']:
-                    self.available = dt.datetime.strptime(
-                        attr['data-date'], "%Y-%m-%d").date()
+                    self.available = dt.datetime.strptime(attr['data-date'], "%Y-%m-%d").date()
                     continue
 
                 if attr.text.endswith('ft2'):
                     try:
                         self.size = float(attr.text[:-3])
                     except ValueError:
-                        logger.warning(
-                            "Can't parse size tag {0}.".format(attr.text),
-                            exc_info=True)
+                        logger.warning("Can't parse size tag {0}.".format(attr.text), exc_info=True)
                 elif all(s in attr.text.lower() for s in ("/", "br", "ba")):
                     bedrooms, baths = attr.text.split("/", 1)
                     try:
-                        self.bedrooms = int(bedrooms.lower().replace(
-                            "br", "").strip())
+                        self.bedrooms = int(bedrooms.lower().replace("br", "").strip())
                     except ValueError:
-                        logger.warning(
-                            "Can't parse bedroom tag {0}.".format(attr.text),
-                            exc_info=True)
+                        logger.warning("Can't parse bedroom tag {0}.".format(attr.text), exc_info=True)
                     try:
-                        self.bathrooms = float(baths.lower().replace(
-                            "ba", "").strip())
+                        self.bathrooms = float(baths.lower().replace("ba", "").strip())
                     except ValueError:
-                        logger.warning(
-                            "Can't parse bathroom tag {0}.".format(attr.text),
-                            exc_info=True)
+                        logger.warning("Can't parse bathroom tag {0}.".format(attr.text), exc_info=True)
                 elif not any(attr.text == tag.name for tag in self.tags):
                     self.tags.append(attr.text)
 
@@ -328,8 +305,7 @@ class ListingExpirationCheck(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'))
-    listing = db.relationship(
-        "Listing", backref=db.backref("_userinfo", uselist=False))
+    listing = db.relationship("Listing", backref=db.backref("_userinfo", uselist=False))
 
     created = db.Column(db.DateTime)
     response_status = db.Column(db.Integer)
@@ -354,8 +330,7 @@ class CraigslistSite(db.Model):
         # pylint: disable=unused-argument
         if isinstance(name, CraigslistArea):
             return name
-        area = CraigslistArea.query.filter_by(
-            name=name, site=self).one_or_none()
+        area = CraigslistArea.query.filter_by(name=name, site=self).one_or_none()
         if area is not None:
             return area
         area = CraigslistArea(name=name, site=self)
@@ -367,12 +342,21 @@ class CraigslistArea(db.Model):
     __tablename__ = 'clarea'
     id = db.Column(db.Integer(), primary_key=True)
     site_id = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
-    site = db.relationship(
-        'CraigslistSite', backref=db.backref('areas', uselist=True))
+    site = db.relationship('CraigslistSite', backref=db.backref('areas', uselist=True))
     name = db.Column(db.String(255))
+
+    def __str__(self):
+        return self.name.upper()
 
 
 class CraigslistCategory(db.Model):
     __tablename__ = 'clcategory'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
+    description = db.Column(db.String(255))
+
+    def __str__(self):
+        return f"{self.name.upper()}: {self.description}"
+
+    def __repr__(self):
+        return f"CraigslistCategory(name={self.name!r}, description={self.description!r})"

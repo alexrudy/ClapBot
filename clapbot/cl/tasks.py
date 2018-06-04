@@ -169,13 +169,23 @@ def new_listing_pipeline(listing_json, force=False):
 
 
 @celery.task()
-def scrape(site=None, area=None, limit=None, force=False):
+def scrape(site=None,
+           area=None,
+           category=None,
+           filters=None,
+           limit=None,
+           force=False):
     """Scrape listings from craigslist, and ingest them properly."""
     limit = limit if limit is not None else app.config['CRAIGSLIST_MAX_SCRAPE']
     g = group([
         new_listing_pipeline(result, force=force)
         for result in cl_scrape.iter_scraped_results(
-            app, site=site, area=area, limit=limit)
+            app,
+            site=site,
+            area=area,
+            category=category,
+            filters=filters,
+            limit=limit)
     ])
     result = g.delay()
     result.save()

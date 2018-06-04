@@ -3,10 +3,13 @@
             <tr>
                 <th>Site</th>
                 <th>Area</th>
+                <th>Category</th>
+                <th>Price</th>
                 <th>Description</th>
                 <th>Target Move-in Date</th>
                 <th>Expiration Date</th>
                 <th>Owner</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -14,10 +17,22 @@
             <tr>
                 <td>{{ search.site.name|upper }}</td>
                 <td>{{ search.area.name|upper }}</td>
+                <td>{{ search.category.name|upper }}</td>
+                <td>
+                    {% if search.price_min and search.price_max %}
+                    ${{ '%.2f'|format(search.price_min) }} to ${{ '%.2f'|format(search.price_max) }}
+                    {% elif search.price_min %}
+                    At least ${{ '%.2f'|format(search.price_min) }}
+                    {% elif search.price_max %}
+                    At most ${{ '%.2f'|format(search.price_max) }}
+                    {% else %}
+                    {% endif %}
+                </td>
                 <td>{{ search.description }}</td>
-                <td>{{ search.target_date }}</td>
-                <td>{{ search.expiration_date }}</td>
+                <td>{{ search.target_date.strftime("%Y-%m-%d") }}</td>
+                <td>{{ search.expiration_date.strftime("%Y-%m-%d") }}</td>
                 <td>@{{ search.owner.username }}</td>
+                <td><a href="{{ url_for('search.edit', identifier=search.id) }}">Edit</a></td>
             </tr>
             {% endfor %}
         </tbody>
