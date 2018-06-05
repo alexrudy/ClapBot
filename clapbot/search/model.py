@@ -1,6 +1,14 @@
+import enum
 import datetime as dt
 
 from ..core import db
+
+
+class HousingSearchStatus(enum.Enum):
+    PENDING = enum.auto()
+    ACTIVE = enum.auto()
+    EXPIRED = enum.auto()
+    DISABLED = enum.auto()
 
 
 class HousingSearch(db.Model):
@@ -11,6 +19,8 @@ class HousingSearch(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     owner = db.relationship("User", backref=db.backref("housing_searches", uselist=True))
 
+    enabled = db.Column(db.Boolean, default=True)
+
     created_at = db.Column(db.DateTime, default=dt.datetime.now)
     description = db.Column(db.String(255))
 
@@ -20,7 +30,7 @@ class HousingSearch(db.Model):
     price_min = db.Column(db.Integer())
     price_max = db.Column(db.Integer())
 
-    require_images = db.Column(db.Boolean)
+    require_images = db.Column(db.Boolean, default=True)
 
     @property
     def filters(self):
@@ -32,6 +42,16 @@ class HousingSearch(db.Model):
         if self.require_images:
             data['has_image'] = True
         return data
+
+    @property
+    def status(self):
+        if not self.enabled:
+            return HousingSearchStatus.DISABLED
+        if self.expiration_date <= dt.datetime.now():
+            return HousingSearchStatus.EXPIRED
+        if self.category is None:
+            return HousingSearchStatus.PENDING
+        return HousingSearchStatus.ACTIVE
 
     cl_site = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
     site = db.relationship("CraigslistSite", backref=db.backref("searches", uselist=True, lazy='dynamic'))

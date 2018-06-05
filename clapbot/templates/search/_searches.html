@@ -9,15 +9,16 @@
                 <th>Target Move-in Date</th>
                 <th>Expiration Date</th>
                 <th>Owner</th>
+                <th>Status</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
             {% for search in searches %}
             <tr>
-                <td>{{ search.site.name|upper }}</td>
-                <td>{{ search.area.name|upper }}</td>
-                <td>{{ search.category.name|upper }}</td>
+                <td><span class="label label-default">{{ search.site.name|upper }}</span></td>
+                <td><span class="label label-default">{{ search.area.name|upper }}</span></td>
+                <td><span class="label label-default">{{ search.category.name|upper }}</span></td>
                 <td>
                     {% if search.price_min and search.price_max %}
                     ${{ '%.2f'|format(search.price_min) }} to ${{ '%.2f'|format(search.price_max) }}
@@ -32,7 +33,13 @@
                 <td>{{ search.target_date.strftime("%Y-%m-%d") }}</td>
                 <td>{{ search.expiration_date.strftime("%Y-%m-%d") }}</td>
                 <td>@{{ search.owner.username }}</td>
-                <td><a href="{{ url_for('search.edit', identifier=search.id) }}">Edit</a></td>
+                <td>{{ search.status.name }}</td>
+                <td>
+                    <form action="{{ url_for('search.delete', identifier=search.id) }}" method='POST'>
+                        <a href="{{ url_for('search.edit', identifier=search.id) }}" class='btn btn-primary' role="button">Edit</a>
+                        <button type="submit  " class='btn btn-danger'>Delete</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

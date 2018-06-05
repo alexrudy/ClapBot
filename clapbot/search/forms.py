@@ -29,26 +29,14 @@ class HousingSearchCreate(FlaskForm):
 class HousingSearchEditForm(FlaskForm):
     """Form for inline editing of housing searches"""
 
-    def __init__(self, search, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.search = search
-        self.search_id.data = search.id
-        self.description.data = search.description
-        self.target_date.data = search.target_date
-        self.price_min.data = search.price_min
-        self.price_max.data = search.price_max
-        self.area.data = search.area
-        self.area.query = CraigslistArea.query.filter_by(site=search.site)
-        self.category.data = search.category
-
-    search_id = HiddenField()
     description = TextAreaField()
     target_date = DateField(validators=[DataRequired()])
 
-    price_min = IntegerField(validators=[NumberRange(min=0), DataRequired()])
-    price_max = IntegerField(validators=[NumberRange(min=0), DataRequired()])
+    price_min = IntegerField('Max Price ($)', validators=[NumberRange(min=0), DataRequired()])
+    price_max = IntegerField('Min Price ($)', validators=[NumberRange(min=0), DataRequired()])
 
-    area = QuerySelectField('CraigslistArea', query_factory=enabled_sites)
-    category = QuerySelectField('CraigslistCategory', validators=[DataRequired()], query_factory=enabled_categories)
+    area = QuerySelectField(
+        'Area', query_factory=enabled_areas, allow_blank=True, blank_text='ALL - (Search all areas)')
+    category = QuerySelectField('Category', validators=[DataRequired()], query_factory=enabled_categories)
 
     submit = SubmitField('Save')

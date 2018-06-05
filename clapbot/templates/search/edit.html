@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}
+ClapBot - Edit Search
+{% endblock %}
+
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<div class='container'>
+    <h2>Edit Search</h2>
+    <hr>
+    <div class='row'>
+        <div class='col-md-1'></div>
+        <div class='col-md-8'>
+            <form action="" method='POST' class="form-horizontal">
+                    {{ form.hidden_tag() }}
+                    {{ wtf.form_errors(form, hiddens="only") }}
+
+                    <div class='form-group'>
+                        <dl>
+                            <dt>Site</dt>
+                            <dd>{{ search.site.name|upper }}</dd>
+                            <dt>Expiration Date</dt>
+                            <dd>{{ search.expiration_date.strftime("%Y-%m-%d") }}</dd>
+                            <dt>Owner</dt>
+                            <dd>@{{ search.owner.username }}</dd>
+                        </dl>
+                    </div>
+                    <hr>
+
+                    {{ wtf.form_field(form.description) }}
+                    {{ wtf.form_field(form.target_date) }}
+
+                    {{ wtf.form_field(form.area) }}
+
+                    {{ wtf.form_field(form.category) }}
+
+                    {{ wtf.form_field(form.price_min) }}
+                    {{ wtf.form_field(form.price_max) }}
+
+                    <div class='form-group'>
+                    {{ form.submit(class='btn btn-primary') }}
+                    </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

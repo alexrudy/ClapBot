@@ -1,7 +1,7 @@
 import datetime as dt
 
 from flask import Blueprint, render_template, current_app
-from flask import redirect, url_for, flash
+from flask import redirect, url_for, flash, request
 
 from flask_login import current_user, login_required
 
@@ -40,16 +40,33 @@ def create():
         db.session.add(hs)
         db.session.commit()
         current_app.logger.info("Created a new search setting.")
-        return redirect(url_for('.view'))
+        return redirect(url_for('user.profile', username=current_user.username))
 
     return render_template('search/new.html', form=form)
 
 
-@bp.route('/')
-def view():
-    return render_template('search/view.html', searches=current_user.housing_searches)
+@bp.route('/<identifier>/delete', methods=['GET', 'POST'])
+def delete(identifier):
+    hs = HousingSearch.query.get_or_404(identifier)
+
+    db.session.delete(hs)
+    db.session.commit()
+    return redirect(url_for('user.profile', username=current_user.username))
 
 
-@bp.route('/<identifier>')
+@bp.route('/<identifier>', methods=['GET', 'POST'])
 def edit(identifier):
-    return "coming soon"
+    hs = HousingSearch.query.get_or_404(identifier)
+
+    form = HousingSearchEditForm(obj=hs)
+
+    if form.validate_on_submit():
+        form.populate_obj(hs)
+
+        if hs.price_min > hs.price_max:
+            hs.price_min, hs.price_max = hs.price_max, hs.price_min
+
+        db.session.commit()
+        return redirect(url_for('user.profile', username=current_user.username))
+
+    return render_template('search/edit.html', form=form, search=hs)
