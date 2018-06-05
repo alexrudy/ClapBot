@@ -22,7 +22,9 @@ class HousingSearch(db.Model):
     enabled = db.Column(db.Boolean, default=True)
 
     created_at = db.Column(db.DateTime, default=dt.datetime.now)
-    description = db.Column(db.String(255))
+
+    name = db.Column(db.String(255))
+    description = db.Column(db.Text)
 
     target_date = db.Column(db.DateTime)
     expiration_date = db.Column(db.DateTime)

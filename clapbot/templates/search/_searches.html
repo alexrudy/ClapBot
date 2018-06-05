@@ -1,11 +1,11 @@
 <table class='table'>
         <thead>
             <tr>
+                <th>Name</th>
                 <th>Site</th>
                 <th>Area</th>
                 <th>Category</th>
                 <th>Price</th>
-                <th>Description</th>
                 <th>Target Move-in Date</th>
                 <th>Expiration Date</th>
                 <th>Owner</th>
@@ -16,6 +16,7 @@
         <tbody>
             {% for search in searches %}
             <tr>
+                <td>{{ search.name }}</td>
                 <td><span class="label label-default">{{ search.site.name|upper }}</span></td>
                 <td><span class="label label-default">{{ search.area.name|upper }}</span></td>
                 <td><span class="label label-default">{{ search.category.name|upper }}</span></td>
@@ -29,7 +30,6 @@
                     {% else %}
                     {% endif %}
                 </td>
-                <td>{{ search.description }}</td>
                 <td>{{ search.target_date.strftime("%Y-%m-%d") }}</td>
                 <td>{{ search.expiration_date.strftime("%Y-%m-%d") }}</td>
                 <td>@{{ search.owner.username }}</td>

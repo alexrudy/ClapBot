@@ -16,6 +16,8 @@ ClapBot - Edit Search
                     {{ form.hidden_tag() }}
                     {{ wtf.form_errors(form, hiddens="only") }}
 
+                    {{ wtf.form_field(form.name) }}
+
                     <div class='form-group'>
                         <dl>
                             <dt>Site</dt>

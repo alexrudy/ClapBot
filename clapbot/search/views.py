@@ -23,6 +23,7 @@ def create():
             return redirect(url_for('user.profile', username=current_user.username))
 
         hs = HousingSearch(
+            name=form.name.data,
             description=form.description.data,
             target_date=dt.datetime.combine(form.target_date.data, dt.time(0, 0, 0)),
             created_at=dt.datetime.now(),

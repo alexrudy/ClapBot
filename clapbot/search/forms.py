@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, DateField, TextAreaField, IntegerField, HiddenField, FormField
+from wtforms import StringField, SubmitField, DateField, TextAreaField, IntegerField, HiddenField, FormField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, NumberRange
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
@@ -19,6 +19,7 @@ def enabled_areas():
 
 
 class HousingSearchCreate(FlaskForm):
+    name = StringField(validators=[DataRequired()])
     description = TextAreaField()
     target_date = DateField(validators=[DataRequired()])
     site = QuerySelectField('CraigslistSite', validators=[DataRequired()], query_factory=enabled_sites)
@@ -28,6 +29,8 @@ class HousingSearchCreate(FlaskForm):
 
 class HousingSearchEditForm(FlaskForm):
     """Form for inline editing of housing searches"""
+
+    name = StringField(validators=[DataRequired()])
 
     description = TextAreaField()
     target_date = DateField(validators=[DataRequired()])
