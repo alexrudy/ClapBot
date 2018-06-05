@@ -6,7 +6,7 @@ from flask_login import current_user, login_user, logout_user
 
 from ..core import db
 
-from .model import User
+from .model import User, UserStatus
 from .forms import LoginForm, RegistrationForm
 
 bp = Blueprint('auth', __name__, template_folder='templates')
@@ -45,12 +45,18 @@ def logout():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('core.home'))
+
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(email=form.email.data)
+        user = User.query.filter_by(email=form.email.data).one_or_none()
+        if user is None or user.status != UserStatus.registered:
+            flash('Invalid email')
+            return redirect(url_for('.login'))
+
         user.set_password(form.password.data)
+        user.status = UserStatus.active
         db.session.add(user)
         db.session.commit()
-        flash('Congratulations, you are now a registered user!')
+        flash('Congratulations, you are now a registered ClapBot user!')
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html', title='Register', form=form)
