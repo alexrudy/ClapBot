@@ -175,6 +175,40 @@ class Listing(db.Model):
         lon = app.config['CRAIGSLIST_SCORE_WORK_LON']
         return self.distance_to(lat, lon)
 
+    @validates("site")
+    def validate_site(self, key, value):
+        """Validate a craigslist site"""
+        # pylint: disable=unused-argument
+        if isinstance(value, CraigslistSite):
+            return value
+        value = CraigslistSite.query.filter_by(name=value.lower()).one_or_none()
+        if value is None:
+            raise ValueError("Invalid craigslist site")
+        return value
+
+    @validates("area")
+    def validate_area(self, key, value):
+        """Validate a craigslist site"""
+        # pylint: disable=unused-argument
+        if not isinstance(value, CraigslistArea):
+            value = CraigslistArea.query.filter_by(name=value.lower(), site=self.site).one_or_none()
+            if value is None:
+                raise ValueError("Invalid craigslist area")
+        if value not in self.site.areas:
+            raise ValueError(f"Invalid area, must be a member of {self.site}")
+        return value
+
+    @validates("category")
+    def validate_category(self, key, value):
+        """Validate a craigslist site"""
+        # pylint: disable=unused-argument
+        if isinstance(value, CraigslistCategory):
+            return value
+        value = CraigslistCategory.query.filter_by(name=value.lower()).one_or_none()
+        if value is None:
+            raise ValueError("Invalid craigslist category")
+        return value
+
     @validates("created")
     def validate_datetime(self, key, value):
         """Validate a datetime"""
@@ -234,7 +268,10 @@ class Listing(db.Model):
             'url': self.url,
             'price': f"${self.price:.0f}",
             'name': self.name,
-            'geotag': [self.lat, self.lon]
+            'geotag': [self.lat, self.lon],
+            'site': self.site.name,
+            'area': self.area.name,
+            'category': self.category.name,
         }
         return result
 
