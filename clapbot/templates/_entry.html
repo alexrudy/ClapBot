@@ -71,6 +71,9 @@
         {% if listing.lat != None %}
         <p><strong>Work:</strong> {{ '%.1f' | format(listing.distance_to_work()) }}km</p>
         {% endif %}
+        <p>
+            <span class="label label-default">{{ listing.site.name|upper }}</span> / <span class="label label-default">{{ listing.area.name|upper }}</span>
+        </p>
     </td>
     <td>
         <ul class='tags list-unstyled'>

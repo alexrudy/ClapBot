@@ -117,9 +117,18 @@ class Listing(db.Model):
     name = db.Column(db.String)
     price = db.Column(db.Float)
     location = db.Column(db.String)
+    home_area = db.Column(db.String)
+
     cl_id = db.Column(BigInteger, unique=True)
 
-    area = db.Column(db.String)
+    cl_site = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
+    site = db.relationship("CraigslistSite", backref=db.backref("listings", uselist=True, lazy='dynamic'))
+    cl_area = db.Column(db.Integer(), db.ForeignKey('clarea.id'))
+    area = db.relationship("CraigslistArea", backref=db.backref("listings", uselist=True, lazy='dynamic'))
+
+    cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
+    category = db.relationship("CraigslistCategory", backref=db.backref("listings", uselist=True, lazy='dynamic'))
+
     transit_stop_id = db.Column(db.Integer, db.ForeignKey("transitstop.id"))
     transit_stop = db.relationship("clapbot.model.TransitStop", backref=db.backref('listings', lazy='dynamic'))
 
