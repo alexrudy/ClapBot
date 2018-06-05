@@ -2,4 +2,7 @@ graft clapbot/templates
 graft clapbot/static
 graft clapbot/data
 graft clapbot/assets
+
+graft clapbot/users/templates
+
 recursive-include clapbot/ *.py

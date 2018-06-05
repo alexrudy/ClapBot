@@ -49,14 +49,13 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).one_or_none()
-        if user is None or user.status != UserStatus.registered:
-            flash('Invalid email')
-            return redirect(url_for('.login'))
 
+        user.username = form.username.data
         user.set_password(form.password.data)
         user.status = UserStatus.active
-        db.session.add(user)
+
         db.session.commit()
         flash('Congratulations, you are now a registered ClapBot user!')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('.login'))
+
     return render_template('auth/register.html', title='Register', form=form)

@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from celery.contrib.testing.app import DEFAULT_TEST_CONFIG
-from celery.contrib.testing import tasks  # noqa: F401 pylint: disable=unused-import
+from celery.contrib.testing import tasks    # noqa: F401 pylint: disable=unused-import
 
 from clapbot.application import create_app
 from clapbot.core import db, celery
@@ -41,7 +41,7 @@ def app(tmpdir):
         app.config['CRAIGSLIST_CACHE_PATH'] = str(path)
         app.config['CRAIGSLIST_CACHE_ENABLE'] = True
 
-        del app.logger.handlers[:]  # pylint: disable=no-member
+        del app.logger.handlers[:]    # pylint: disable=no-member
 
     yield app
 
@@ -90,9 +90,8 @@ class AuthActions(object):
     def __init__(self, client):
         self._client = client
 
-    def login(self, email='test', password='test'):
-        return self._client.post(
-            '/auth/login', data=dict(email=email, password=password))
+    def login(self, email='test@example.com', password='test'):
+        return self._client.post('/auth/login', data=dict(email=email, password=password))
 
     def logout(self):
         return self._client.get('/auth/logout')
