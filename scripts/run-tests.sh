@@ -11,3 +11,5 @@ fi
 if (type pushover > /dev/null); then
     pushover -s$RESULT "Clapbot ${SERVICE} tests finished"
 fi
+
+exit $RESULT
