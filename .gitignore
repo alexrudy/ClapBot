@@ -109,6 +109,5 @@ data/cl/*
 
 # Configuration
 
-config/*
 *.db
 .vscode/*
