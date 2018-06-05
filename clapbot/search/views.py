@@ -20,7 +20,7 @@ def create():
     if form.validate_on_submit():
         if len(current_user.housing_searches) > current_app.config['CRAIGSLIST_MAX_USER_SEARCHES']:
             flash(f"{current_user.username} has exceeded maximum searches")
-            return redirect(url_for('.create'))
+            return redirect(url_for('user.profile', username=current_user.username))
 
         hs = HousingSearch(
             description=form.description.data,
