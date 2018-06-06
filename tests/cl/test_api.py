@@ -29,7 +29,7 @@ def test_image(client, craigslist, image):
 @pytest.mark.celery
 def test_scrape(client, auth, craigslist, celery_worker, celery_timeout):
     auth.login()
-    response = client.get(f'/cl/api/v1/scrape')
+    response = client.get(f'/cl/api/v1/scrape/sfbay/eby/apa')
     assert response.status_code == 302
     result = AsyncResult(response.headers['X-result-token'])
     result.get(timeout=celery_timeout)

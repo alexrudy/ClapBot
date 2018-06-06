@@ -9,6 +9,8 @@ from flask_login import login_required
 from . import tasks as t
 from . import model as m
 
+from ..core import db
+
 #: API Blueprint for craigslist
 bp = Blueprint('cl.api', __name__)
 
@@ -43,11 +45,18 @@ def sites():
     return response
 
 
-@bp.route("/scrape")
+@bp.route("/scrape/<site>/<area>/<category>")
 @login_required
-def scrape():
+def scrape(site, area, category):
     """Scrape craigslist now!"""
-    result = t.scrape.delay()
+    area = m.CraigslistArea.query.filter(m.CraigslistArea.name == area).join(
+        m.CraigslistArea.site).filter(m.CraigslistSite.name == site).first_or_404()
+
+    record = m.ScrapeRecord(area=area, category=category)
+    db.session.add(record)
+    db.session.commit()
+
+    result = t.scrape.s(record.id).delay()
     response = redirect(next_url(request))
     response.headers['X-result-token'] = result.id
     return response

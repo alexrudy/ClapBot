@@ -1,6 +1,7 @@
 import pytest
 
 from clapbot.cl import scrape
+from clapbot.cl import utils
 
 # pylint: disable=redefined-outer-name,unused-argument
 
@@ -12,17 +13,17 @@ def test_save_iterator():
                 raise ValueError("A problem")
             yield i
 
-    gen = scrape.safe_iterator(failing_iterator(), 2)
+    gen = utils.safe_iterator(failing_iterator(), 2)
     assert list(gen) == [0]
 
 
 @pytest.fixture
 def housing(monkeypatch, listing_json):
     class MockCraigslistQuery:
-        def __init__(self, app, **kwargs):
+        def __init__(self, site, area, category, **kwargs):
             self.settings = kwargs
             self.results_kwargs = {}
-            self._listings = [listing_json, ValueError()]
+            self._listings = [listing_json]
             self._i = 0
 
         def __iter__(self):
@@ -43,11 +44,10 @@ def housing(monkeypatch, listing_json):
             self.results_kwargs.update(kwargs)
             return self
 
-    monkeypatch.setattr('clapbot.cl.scrape.create_scraper',
-                        MockCraigslistQuery)
+    monkeypatch.setattr('clapbot.cl.scrape.make_scraper', MockCraigslistQuery)
 
 
 def test_iter_scraped(app, housing, nointernet, listing_json):
     with app.app_context():
-        listings = list(scrape.iter_scraped_results(app, limit=1))
+        listings = list(scrape.make_scraper('sfbay', 'eby', 'apa', filters=None, limit=1))
     assert listings == [listing_json]

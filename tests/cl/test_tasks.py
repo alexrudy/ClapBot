@@ -5,13 +5,22 @@ import pytest
 from celery.result import GroupResult
 
 from clapbot.cl import tasks, model
-
+from clapbot.core import db
 # pylint: disable=unused-argument
 
 
+@pytest.fixture
+def scrape_record(app):
+    with app.app_context():
+        sr = model.ScrapeRecord(site='sfbay', area='eby', category='apa')
+        db.session.add(sr)
+        db.session.commit()
+        sr_id = sr.id
+    return sr_id
+
+
 @pytest.mark.celery
-def test_export_listing(app, celery_worker, celery_timeout, craigslist,
-                        listing, listing_json):
+def test_export_listing(app, celery_worker, celery_timeout, craigslist, listing, listing_json):
     """Test the task which exports a single listing to a cache file."""
     assert app.config['CRAIGSLIST_CACHE_ENABLE']
 
@@ -31,13 +40,11 @@ def assert_cache_json(cache_path, listing_json):
 
     for key, value in exported_json.items():
         if isinstance(value, (int, str)):
-            assert exported_json[key] == listing_json[
-                key], f"Mismatch for {key}"
+            assert exported_json[key] == listing_json[key], f"Mismatch for {key}"
 
 
 @pytest.mark.celery
-def test_listing_download(app, celery_worker, celery_timeout, craigslist,
-                          listing):
+def test_listing_download(app, celery_worker, celery_timeout, craigslist, listing):
     """Test the task which downloads a listing from craigslist."""
     with app.app_context():
         assert not model.Listing.query.get(listing).text
@@ -66,8 +73,7 @@ def test_image_download(app, celery_worker, celery_timeout, craigslist, image):
 
 
 @pytest.mark.celery
-def test_download_chain(app, celery_app, celery_worker, celery_timeout,
-                        craigslist, listing_json):
+def test_download_chain(app, celery_app, celery_worker, celery_timeout, craigslist, listing_json):
 
     with app.app_context():
         group = tasks.new_listing_pipeline(listing_json)
@@ -89,8 +95,7 @@ def test_download_chain(app, celery_app, celery_worker, celery_timeout,
 
 
 @pytest.mark.celery
-def test_export_all(app, celery_app, celery_worker, celery_timeout, listing,
-                    listing_json):
+def test_export_all(app, celery_app, celery_worker, celery_timeout, listing, listing_json):
 
     result = tasks.export_listings.delay().get(timeout=celery_timeout)
     GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
@@ -101,13 +106,10 @@ def test_export_all(app, celery_app, celery_worker, celery_timeout, listing,
 
 
 @pytest.mark.celery
-def test_ensure_download(app, celery_app, celery_worker, celery_timeout,
-                         craigslist, listing):
+def test_ensure_download(app, celery_app, celery_worker, celery_timeout, craigslist, listing):
 
-    result = tasks.ensure_downloaded.s(listing).delay().get(
-        timeout=celery_timeout)
-    results = GroupResult.restore(
-        result, app=celery_app).get(timeout=celery_timeout)
+    result = tasks.ensure_downloaded.s(listing).delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
     for result in results:
         GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
 
@@ -125,11 +127,10 @@ def test_ensure_download(app, celery_app, celery_worker, celery_timeout,
 
 
 @pytest.mark.celery
-def test_scrape(app, craigslist, celery_app, celery_worker, celery_timeout):
+def test_scrape(app, craigslist, scrape_record, celery_app, celery_worker, celery_timeout):
 
-    result = tasks.scrape.delay().get(timeout=celery_timeout)
-    results = GroupResult.restore(
-        result, app=celery_app).get(timeout=celery_timeout)
+    result = tasks.scrape.s(scrape_record).delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
     for result in results:
         GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
 
@@ -145,20 +146,17 @@ def test_scrape(app, craigslist, celery_app, celery_worker, celery_timeout):
         img = model.Image.query.first()
         assert img.full is not None
 
-    result = tasks.scrape.delay().get(timeout=celery_timeout)
-    results = GroupResult.restore(
-        result, app=celery_app).get(timeout=celery_timeout)
+    result = tasks.scrape.s(scrape_record).delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
 
 
 @pytest.mark.celery
-def test_image_download_failing(app, monkeypatch, celery_worker,
-                                celery_timeout, nointernet, image):
+def test_image_download_failing(app, monkeypatch, celery_worker, celery_timeout, nointernet, image):
     """Test the task which downloads an image from craigslist"""
     with app.app_context():
         assert model.Image.query.get(image).full is None
     max_retries = 1
-    monkeypatch.setattr('clapbot.cl.tasks.download_image.max_retries',
-                        max_retries)
+    monkeypatch.setattr('clapbot.cl.tasks.download_image.max_retries', max_retries)
 
     result = tasks.download_image.s(image).delay()
     result.get(timeout=celery_timeout, propagate=False)
@@ -168,44 +166,37 @@ def test_image_download_failing(app, monkeypatch, celery_worker,
 
 
 @pytest.mark.celery
-def test_check_expiration(app, craigslist, celery_app, celery_worker,
-                          celery_timeout):
-    result = tasks.scrape.delay().get(timeout=celery_timeout)
-    results = GroupResult.restore(
-        result, app=celery_app).get(timeout=celery_timeout)
+def test_check_expiration(app, craigslist, scrape_record, celery_app, celery_worker, celery_timeout):
+
+    result = tasks.scrape.s(scrape_record).delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
     for result in results:
         GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
 
     with app.app_context():
         listing_id = model.Listing.query.first().id
 
-    status_code = tasks.check_expiration.s(listing_id).delay().get(
-        timeout=celery_timeout)
+    status_code = tasks.check_expiration.s(listing_id).delay().get(timeout=celery_timeout)
 
     assert status_code == 200
 
 
 @pytest.mark.celery
-def test_check_expirations(app, craigslist, celery_app, celery_worker,
-                           celery_timeout):
-    result = tasks.scrape.delay().get(timeout=celery_timeout)
-    results = GroupResult.restore(
-        result, app=celery_app).get(timeout=celery_timeout)
+def test_check_expirations(app, craigslist, scrape_record, celery_app, celery_worker, celery_timeout):
+    result = tasks.scrape.s(scrape_record).delay().get(timeout=celery_timeout)
+    results = GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
     for result in results:
         GroupResult.restore(result, app=celery_app).get(timeout=celery_timeout)
 
-    result = tasks.check_expirations.s(force=True).delay().get(
-        timeout=celery_timeout)
+    result = tasks.check_expirations.s(force=True).delay().get(timeout=celery_timeout)
 
     result = tasks.check_expirations.delay().get(timeout=celery_timeout)
 
 
 @pytest.mark.celery
-def test_expire_listing(app, listing, missingpages, celery_app, celery_worker,
-                        celery_timeout):
+def test_expire_listing(app, listing, missingpages, celery_app, celery_worker, celery_timeout):
 
-    status_code = tasks.check_expiration.s(listing).delay().get(
-        timeout=celery_timeout)
+    status_code = tasks.check_expiration.s(listing).delay().get(timeout=celery_timeout)
     assert status_code == 404
 
     with app.app_context():

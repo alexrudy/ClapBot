@@ -11,6 +11,7 @@ from flask import current_app as app
 from bs4 import BeautifulSoup
 
 from sqlalchemy.orm import validates
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import BigInteger
 
 from ..utils import coord_distance
@@ -395,6 +396,13 @@ class CraigslistArea(db.Model):
     def __str__(self):
         return self.name.upper()
 
+    @classmethod
+    def _lookup(cls, name, site=None):
+        q = cls.query.filter_by(name=name)
+        if site is not None:
+            q = q.join(CraigslistSite.query.filter_by(name=site))
+        return q.one_or_none()
+
 
 class CraigslistCategory(db.Model):
     __tablename__ = 'clcategory'
@@ -421,14 +429,40 @@ class ScrapeRecord(db.Model):
 
     cl_area = db.Column(db.Integer(), db.ForeignKey('clarea.id'))
     area = db.relationship("CraigslistArea", backref=db.backref("scrapes", uselist=True, lazy='dynamic'))
-    site = db.relationship(
-        "CraigslistSite", secondary='clarea', backref=db.backref("scrapes", uselist=True, lazy='dynamic'))
+
+    @hybrid_property
+    def site(self):
+        return self.area.site
 
     cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
     category = db.relationship("CraigslistCategory", backref=db.backref("scrapes", uselist=True, lazy='dynamic'))
 
     created_at = db.Column(db.DateTime(), default=dt.datetime.now())
+    scraped_at = db.Column(db.DateTime(), default=dt.datetime.now())
 
     status = db.Column(db.Enum(ScrapeStatus), default=ScrapeStatus.pending)
     result = db.Column(db.String(255))
     records = db.Column(db.Integer())
+
+    def __init__(self, **kwargs):
+        if not isinstance(kwargs.get('area'), CraigslistArea):
+            kwargs['area'] = CraigslistArea._lookup(kwargs.pop('area'), site=kwargs.pop('site', None))
+        if 'site' in kwargs:
+            raise ValueError("Can't pass site={site} with area={area}".format_map(kwargs))
+        super().__init__(**kwargs)
+
+    def scraper(self, filters=None, limit=None):
+        from .scrape import make_scraper
+        return make_scraper(
+            site=self.site.name, area=self.area.name, category=self.category.name, filters=filters, limit=limit)
+
+    @validates("category")
+    def validate_category(self, key, value):
+        """Validate a craigslist site"""
+        # pylint: disable=unused-argument
+        if isinstance(value, CraigslistCategory):
+            return value
+        value = CraigslistCategory.query.filter_by(name=value.lower()).one_or_none()
+        if value is None:
+            raise ValueError("Invalid craigslist category")
+        return value

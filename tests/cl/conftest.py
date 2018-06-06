@@ -63,11 +63,11 @@ def image_data():
 
 @pytest.fixture
 def craigslist(monkeypatch, listing_json, listing_html, image_data):
-    def iter_listings(app, **kwargs):
+    def iter_listings(site, area, category, **kwargs):
         log.info(f"Scraping from {kwargs!r}")
         yield listing_json
 
-    monkeypatch.setattr('clapbot.cl.scrape.iter_scraped_results', iter_listings)
+    monkeypatch.setattr('clapbot.cl.scrape.make_scraper', iter_listings)
 
     urls = Counter()
 
