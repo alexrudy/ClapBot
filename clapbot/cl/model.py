@@ -1,5 +1,6 @@
 import base64
 import logging
+import enum
 import datetime as dt
 import urllib.parse
 
@@ -406,3 +407,28 @@ class CraigslistCategory(db.Model):
 
     def __repr__(self):
         return f"CraigslistCategory(name={self.name!r}, description={self.description!r})"
+
+
+class ScrapeStatus(enum.Enum):
+    pending = 1
+    started = 2
+    finished = 3
+
+
+class ScrapeRecord(db.Model):
+    __tablename__ = 'scraperecord'
+    id = db.Column(db.Integer(), primary_key=True)
+
+    cl_area = db.Column(db.Integer(), db.ForeignKey('clarea.id'))
+    area = db.relationship("CraigslistArea", backref=db.backref("scrapes", uselist=True, lazy='dynamic'))
+    site = db.relationship(
+        "CraigslistSite", secondary='clarea', backref=db.backref("scrapes", uselist=True, lazy='dynamic'))
+
+    cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
+    category = db.relationship("CraigslistCategory", backref=db.backref("scrapes", uselist=True, lazy='dynamic'))
+
+    created_at = db.Column(db.DateTime(), default=dt.datetime.now())
+
+    status = db.Column(db.Enum(ScrapeStatus), default=ScrapeStatus.pending)
+    result = db.Column(db.String(255))
+    records = db.Column(db.Integer())
