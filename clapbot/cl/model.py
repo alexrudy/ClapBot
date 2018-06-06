@@ -442,7 +442,7 @@ class ScrapeRecord(db.Model):
 
     status = db.Column(db.Enum(ScrapeStatus), default=ScrapeStatus.pending)
     result = db.Column(db.String(255))
-    records = db.Column(db.Integer())
+    records = db.Column(db.Integer(), default=0)
 
     def __init__(self, **kwargs):
         if not isinstance(kwargs.get('area'), CraigslistArea):
@@ -453,8 +453,10 @@ class ScrapeRecord(db.Model):
 
     def scraper(self, filters=None, limit=None):
         from .scrape import make_scraper
-        return make_scraper(
-            site=self.site.name, area=self.area.name, category=self.category.name, filters=filters, limit=limit)
+        for result in make_scraper(
+                site=self.site.name, area=self.area.name, category=self.category.name, filters=filters, limit=limit):
+            self.records += 1
+            yield result
 
     @validates("category")
     def validate_category(self, key, value):
