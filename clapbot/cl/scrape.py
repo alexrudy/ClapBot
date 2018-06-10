@@ -4,7 +4,7 @@ Engine behind scraping craigslist for listings and adding them to the database.
 import logging
 
 from .utils import safe_iterator
-# from .model import ScrapeRecord
+# from .model import Record
 
 # from ..search.model import HousingSearch
 

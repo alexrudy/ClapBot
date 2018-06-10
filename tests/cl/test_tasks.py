@@ -12,7 +12,7 @@ from clapbot.core import db
 @pytest.fixture
 def scrape_record(app):
     with app.app_context():
-        sr = model.scrape.ScrapeRecord(site='sfbay', area='eby', category='apa')
+        sr = model.scrape.Record(site='sfbay', area='eby', category='apa')
         db.session.add(sr)
         db.session.commit()
         sr_id = sr.id

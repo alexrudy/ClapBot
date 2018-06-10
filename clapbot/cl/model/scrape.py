@@ -8,18 +8,18 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from . import site
 from ...core import db
 
-__all__ = ['ScrapeStatus', 'ScrapeRecord']
+__all__ = ['Status', 'Record']
 
 logger = logging.getLogger(__name__)
 
 
-class ScrapeStatus(enum.Enum):
+class Status(enum.Enum):
     pending = 1
     started = 2
     finished = 3
 
 
-class ScrapeRecord(db.Model):
+class Record(db.Model):
     __tablename__ = 'scraperecord'
     id = db.Column(db.Integer(), primary_key=True)
 
@@ -36,7 +36,7 @@ class ScrapeRecord(db.Model):
     created_at = db.Column(db.DateTime(), default=dt.datetime.now())
     scraped_at = db.Column(db.DateTime(), default=dt.datetime.now())
 
-    status = db.Column(db.Enum(ScrapeStatus), default=ScrapeStatus.pending)
+    status = db.Column(db.Enum(Status), default=Status.pending)
     result = db.Column(db.String(255))
     records = db.Column(db.Integer(), default=0)
 
@@ -44,8 +44,8 @@ class ScrapeRecord(db.Model):
         super().__init__(**site.Area._handle_kwargs(kwargs))
 
     def __repr__(self):
-        return "ScrapeRecord(id={}, stie={}, area={}, category={}, status={})".format(
-            self.id, self.site.name, self.area.name, self.category.name, self.status)
+        return "Record(id={}, stie={}, area={}, category={}, status={})".format(self.id, self.site.name, self.area.name,
+                                                                                self.category.name, self.status)
 
     def scraper(self, filters=None, limit=None):
         from ..scrape import make_scraper
@@ -57,7 +57,7 @@ class ScrapeRecord(db.Model):
     def mark_celery_result(self, result):
         result.save()
         self.scraped_at = dt.datetime.now()
-        self.status = ScrapeStatus.started
+        self.status = Status.started
         self.result = result.id
 
     @validates("category")

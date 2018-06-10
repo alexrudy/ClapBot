@@ -46,7 +46,7 @@ def scrape(site, area, category):
     area = m.site.Area.query.filter(m.site.Area.name == area).join(
         m.site.Area.site).filter(m.site.Site.name == site).first_or_404()
 
-    record = m.scrape.ScrapeRecord(area=area, category=category)
+    record = m.scrape.Record(area=area, category=category)
     db.session.add(record)
     db.session.commit()
 

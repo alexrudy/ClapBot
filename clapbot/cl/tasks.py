@@ -17,7 +17,7 @@ from celery.canvas import group
 from ..core import db, celery
 from .model.listing import Listing, ListingExpirationCheck
 from .model.image import Image
-from .model.scrape import ScrapeRecord, ScrapeStatus
+from .model.scrape import Record, Status
 from . import sites as cl_sites
 
 __all__ = ['download_listing', 'download_image']
@@ -163,7 +163,7 @@ def scrape(id, filters=None, limit=None, force=False):
     """Scrape listings from craigslist, and ingest them properly."""
     limit = limit if limit is not None else app.config['CRAIGSLIST_MAX_SCRAPE']
 
-    record = ScrapeRecord.query.get(id)
+    record = Record.query.get(id)
     result = scrape_pipeline(record, limit=limit, filters=filters, force=force)
     if result is None:
         return None
