@@ -1,8 +1,5 @@
-import base64
 import logging
-import enum
 import datetime as dt
-import urllib.parse
 
 from pathlib import Path
 
@@ -11,13 +8,14 @@ from flask import current_app as app
 from bs4 import BeautifulSoup
 
 from sqlalchemy.orm import validates
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.types import BigInteger
 
-from ..utils import coord_distance
-from ..core import db
+from . import site, image
 
-__all__ = ['images', 'tags', 'Image', 'Listing', 'Tag']
+from ...utils import coord_distance
+from ...core import db
+
+__all__ = ['tags', 'Listing', 'Tag']
 
 logger = logging.getLogger(__name__)
 
@@ -26,61 +24,6 @@ tags = db.Table(
     db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
     db.Column('listing_id', db.Integer, db.ForeignKey('listing.id')),
 )
-
-images = db.Table(
-    'images',
-    db.Column('image_id', db.Integer, db.ForeignKey('image.id')),
-    db.Column('listing_id', db.Integer, db.ForeignKey('listing.id')),
-)
-
-
-class Image(db.Model):
-    """Image belonging to a listing."""
-    __tablename__ = 'image'
-    id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.String, unique=True)
-    full = db.Column(db.LargeBinary)
-    thumbnail = db.Column(db.LargeBinary)
-
-    @property
-    def cache_path(self):
-        """Where to find cached image files."""
-        path = Path(app.config['CRAIGSLIST_CACHE_PATH']) / 'images' / '{}'.format(self.cl_id)[:3]
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
-    @property
-    def thumbb64(self):
-        """A thumbnail in base64"""
-        return base64.b64encode(self.thumbnail).decode('ascii')
-
-    @property
-    def fullb64(self):
-        """A full image in base64"""
-        return base64.b64encode(self.full).decode('ascii')
-
-    @property
-    def cl_id(self):
-        """Craigslist identifier."""
-        #: https://images.craigslist.org/00d0d_1qTvVaQpLrT_600x450.jpg
-        url = urllib.parse.urlsplit(self.url)
-        return "_".join(url.path.lstrip("/").split("_")[:-1])
-
-    @property
-    def thumbnail_url(self):
-        """Try to guess a thumbnail URL"""
-        #: https://images.craigslist.org/00d0d_1qTvVaQpLrT_600x450.jpg
-        url = urllib.parse.urlsplit(self.url)
-        last_part, _ = url.path.split("_")[-1].split(".")
-        try:
-            [int(part) for part in last_part.split("x")]
-        except ValueError:
-            # We don't know that the thumbnail is really valid.
-            return self.url
-        else:
-            scheme, netloc, path, query, fragment = url
-            path = self.cl_id + "_50x50c.jpg"
-            return urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))
 
 
 class Tag(db.Model):
@@ -124,12 +67,12 @@ class Listing(db.Model):
     cl_id = db.Column(BigInteger, unique=True)
 
     cl_site = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
-    site = db.relationship("CraigslistSite", backref=db.backref("listings", uselist=True, lazy='dynamic'))
+    site = db.relationship('site.Site', backref=db.backref("listings", uselist=True, lazy='dynamic'))
     cl_area = db.Column(db.Integer(), db.ForeignKey('clarea.id'))
-    area = db.relationship("CraigslistArea", backref=db.backref("listings", uselist=True, lazy='dynamic'))
+    area = db.relationship('site.Area', backref=db.backref("listings", uselist=True, lazy='dynamic'))
 
     cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
-    category = db.relationship("CraigslistCategory", backref=db.backref("listings", uselist=True, lazy='dynamic'))
+    category = db.relationship('site.Category', backref=db.backref("listings", uselist=True, lazy='dynamic'))
 
     transit_stop_id = db.Column(db.Integer, db.ForeignKey("transitstop.id"))
     transit_stop = db.relationship("clapbot.model.TransitStop", backref=db.backref('listings', lazy='dynamic'))
@@ -141,16 +84,16 @@ class Listing(db.Model):
     text = db.Column(db.Text)
     page = db.Column(db.Text)
 
-    tags = db.relationship('Tag', secondary=tags, backref=db.backref('listings', lazy='dynamic'))
-    images = db.relationship('Image', secondary=images, backref=db.backref('listings', lazy='dynamic'))
+    tags = db.relationship(Tag, secondary=tags, backref=db.backref('listings', lazy='dynamic'))
+    images = db.relationship(image.Image, secondary=image.images, backref=db.backref('listings', lazy='dynamic'))
 
     notified = db.Column(db.Boolean, default=False)
 
     def __init__(self, **kwargs):
-        super().__init__(**CraigslistArea._handle_kwargs(kwargs))
+        super().__init__(**site.Area._handle_kwargs(kwargs))
 
     def __repr__(self):
-        return f"Listing(id={self.id} cl={self.cl_id})"
+        return f"Listing(id={self.id}, cl={self.cl_id}, site={self.site!s}, area={self.area!s})"
 
     @property
     def transit_stop_distance(self):
@@ -167,7 +110,7 @@ class Listing(db.Model):
     @property
     def score_info(self):
         """Return the score info for a listing."""
-        from ..score import score_info
+        from ...score import score_info
         return score_info(self)
 
     def distance_to(self, lat, lon):
@@ -184,9 +127,8 @@ class Listing(db.Model):
     def validate_site(self, key, value):
         """Validate a craigslist site"""
         # pylint: disable=unused-argument
-        if isinstance(value, CraigslistSite):
-            return value
-        value = CraigslistSite.query.filter_by(name=value.lower()).one_or_none()
+        if value is not None and not isinstance(value, site.Site):
+            value = site.Site.query.filter_by(name=value.lower()).one_or_none()
         if value is None:
             raise ValueError("Invalid craigslist site")
         if self.area is not None and self.area not in value.areas:
@@ -197,8 +139,8 @@ class Listing(db.Model):
     def validate_area(self, key, value):
         """Validate a craigslist area"""
         # pylint: disable=unused-argument
-        if not isinstance(value, CraigslistArea):
-            value = CraigslistArea.query.filter_by(name=value.lower(), site=self.site).one_or_none()
+        if not isinstance(value, site.Area):
+            value = site.Area.query.filter_by(name=value.lower(), site=self.site).one_or_none()
             if value is None:
                 raise ValueError("Invalid craigslist area")
         if self.site is None:
@@ -211,9 +153,9 @@ class Listing(db.Model):
     def validate_category(self, key, value):
         """Validate a craigslist site"""
         # pylint: disable=unused-argument
-        if isinstance(value, CraigslistCategory):
+        if isinstance(value, site.Category):
             return value
-        value = CraigslistCategory.query.filter_by(name=value.lower()).one_or_none()
+        value = site.Category.query.filter_by(name=value.lower()).one_or_none()
         if value is None:
             raise ValueError("Invalid craigslist category")
         return value
@@ -246,12 +188,12 @@ class Listing(db.Model):
     def validate_images(self, key, url):
         """Validate tag lists"""
         # pylint: disable=unused-argument
-        if isinstance(url, Image):
+        if isinstance(url, image.Image):
             return url
-        img = Image.query.filter_by(url=url).one_or_none()
+        img = image.Image.query.filter_by(url=url).one_or_none()
         if img is not None:
             return img
-        img = Image(url=url)
+        img = image.Image(url=url)
         db.session.add(img)
         return img
 
@@ -364,131 +306,3 @@ class ListingExpirationCheck(db.Model):
 
     created = db.Column(db.DateTime)
     response_status = db.Column(db.Integer)
-
-
-class CraigslistSite(db.Model):
-    __tablename__ = 'clsite'
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(255))
-    enabled = db.Column(db.Boolean())
-
-    def __str__(self):
-        return self.name.upper()
-
-    @property
-    def url(self):
-        return f'http://{self.name}.craigslist.org'
-
-    @validates('areas')
-    def validate_areas(self, key, name):
-        """Validate tag lists"""
-        # pylint: disable=unused-argument
-        if isinstance(name, CraigslistArea):
-            return name
-        area = CraigslistArea.query.filter_by(name=name, site=self).one_or_none()
-        if area is not None:
-            return area
-        area = CraigslistArea(name=name, site=self)
-        db.session.add(area)
-        return area
-
-
-class CraigslistArea(db.Model):
-    __tablename__ = 'clarea'
-    id = db.Column(db.Integer(), primary_key=True)
-    site_id = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
-    site = db.relationship('CraigslistSite', backref=db.backref('areas', uselist=True))
-    name = db.Column(db.String(255))
-
-    def __str__(self):
-        return self.name.upper()
-
-    @classmethod
-    def _handle_kwargs(cls, kwargs):
-        """Handle initialization kwargs"""
-        if not isinstance(kwargs.get('area'), cls):
-            kwargs['area'] = cls._lookup(kwargs.pop('area'), site=kwargs.pop('site', None))
-        if 'site' in kwargs:
-            raise ValueError("Can't pass site={site} with area={area}".format_map(kwargs))
-        return kwargs
-
-    @classmethod
-    def _lookup(cls, name, site=None):
-        q = cls.query.filter_by(name=name)
-        if isinstance(site, CraigslistSite):
-            q = q.filter(cls.site_id == site.id)
-        elif site is not None:
-            q = q.join(CraigslistSite).filter(CraigslistSite.name == site)
-        return q.one_or_none()
-
-
-class CraigslistCategory(db.Model):
-    __tablename__ = 'clcategory'
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(255))
-    description = db.Column(db.String(255))
-
-    def __str__(self):
-        return f"{self.name.upper()}: {self.description}"
-
-    def __repr__(self):
-        return f"CraigslistCategory(name={self.name!r}, description={self.description!r})"
-
-
-class ScrapeStatus(enum.Enum):
-    pending = 1
-    started = 2
-    finished = 3
-
-
-class ScrapeRecord(db.Model):
-    __tablename__ = 'scraperecord'
-    id = db.Column(db.Integer(), primary_key=True)
-
-    cl_area = db.Column(db.Integer(), db.ForeignKey('clarea.id'))
-    area = db.relationship("CraigslistArea", backref=db.backref("scrapes", uselist=True, lazy='dynamic'))
-
-    @hybrid_property
-    def site(self):
-        return self.area.site
-
-    cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
-    category = db.relationship("CraigslistCategory", backref=db.backref("scrapes", uselist=True, lazy='dynamic'))
-
-    created_at = db.Column(db.DateTime(), default=dt.datetime.now())
-    scraped_at = db.Column(db.DateTime(), default=dt.datetime.now())
-
-    status = db.Column(db.Enum(ScrapeStatus), default=ScrapeStatus.pending)
-    result = db.Column(db.String(255))
-    records = db.Column(db.Integer(), default=0)
-
-    def __init__(self, **kwargs):
-        super().__init__(**CraigslistArea._handle_kwargs(kwargs))
-
-    def __repr__(self):
-        return "ScrapeRecord(id={}, stie={}, area={}, category={}, status={})".format(
-            self.id, self.site.name, self.area.name, self.category.name, self.status)
-
-    def scraper(self, filters=None, limit=None):
-        from .scrape import make_scraper
-        for result in make_scraper(
-                site=self.site.name, area=self.area.name, category=self.category.name, filters=filters, limit=limit):
-            self.records += 1
-            yield result
-
-    def mark_celery_result(self, result):
-        result.save()
-        self.scraped_at = dt.datetime.now()
-        self.status = ScrapeStatus.started
-        self.result = result.id
-
-    @validates("category")
-    def validate_category(self, key, value):
-        """Validate a craigslist site"""
-        # pylint: disable=unused-argument
-        if isinstance(value, CraigslistCategory):
-            return value
-        value = CraigslistCategory.query.filter_by(name=value.lower()).one_or_none()
-        if value is None:
-            raise ValueError("Invalid craigslist category")
-        return value

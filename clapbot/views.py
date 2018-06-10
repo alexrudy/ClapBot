@@ -14,7 +14,8 @@ import redis
 
 from .core import db, bcrypt
 from .model import UserListingInfo, BoundingBox
-from .cl.model import Listing, Image
+from .cl.model import Listing
+from .cl.model.image import Image
 from . import location
 
 bp = Blueprint('core', __name__)
@@ -80,8 +81,7 @@ def home():
 def filter_rejected(listings):
     """Filter out rejected listings"""
     joined = listings.from_self().join(UserListingInfo, isouter=True)
-    return joined.filter(
-        or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
+    return joined.filter(or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
 
 
 @bp.route("/mobile/")
@@ -97,25 +97,18 @@ def mobile_start():
 def mobile(identifier):
     """A mobile view, for a single listing."""
     listing = Listing.query.get_or_404(identifier)
-    prev_lisitng = Listing.query.filter(
-        Listing.created < listing.created).order_by(Listing.created.desc())
+    prev_lisitng = Listing.query.filter(Listing.created < listing.created).order_by(Listing.created.desc())
     prev_lisitng = prev_lisitng.limit(1).one_or_none()
-    next_lisitng = Listing.query.filter(
-        Listing.created > listing.created).order_by(Listing.created.asc())
+    next_lisitng = Listing.query.filter(Listing.created > listing.created).order_by(Listing.created.asc())
     next_lisitng = next_lisitng.limit(1).one_or_none()
-    return render_template(
-        "mobile.html",
-        listing=listing,
-        previous_listing=prev_lisitng,
-        next_listing=next_lisitng)
+    return render_template("mobile.html", listing=listing, previous_listing=prev_lisitng, next_listing=next_lisitng)
 
 
 @bp.route("/mobile/starred/")
 def mobile_starred(identifier):
     """Mobile starred items"""
     joined = listings.from_self().join(UserListingInfo, isouter=True)
-    return joined.filter(
-        or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
+    return joined.filter(or_(~UserListingInfo.rejected, UserListingInfo.rejected == None))
 
 
 @bp.route("/image/<int:identifier>/full.jpg")
@@ -145,11 +138,9 @@ def starred():
     listings = Listing.query.order_by(Listing.created.desc())
     listings = listings.from_self().join(
         UserListingInfo, isouter=True).filter(
-            or_(~UserListingInfo.rejected, UserListingInfo.rejected == None),
-            UserListingInfo.starred == True)
+            or_(~UserListingInfo.rejected, UserListingInfo.rejected == None), UserListingInfo.starred == True)
     listings = listings.order_by(UserListingInfo.score.desc())
-    return render_template(
-        "home.html", listings=listings, title='Starred', active_page='starred')
+    return render_template("home.html", listings=listings, title='Starred', active_page='starred')
 
 
 @bp.route("/listing/<int:id>/star", methods=['POST'])
@@ -222,22 +213,14 @@ def bboxes():
 def settings():
     """Settings view"""
     email = app.config['MAIL_DEFAULT_RECIPIENTS']
-    craigslist = {
-        key[len('CRAIGSLIST_'):]: value
-        for key, value in app.config.items() if key.startswith('CRAIGSLIST_')
-    }
+    craigslist = {key[len('CRAIGSLIST_'):]: value for key, value in app.config.items() if key.startswith('CRAIGSLIST_')}
     scoring = {
         key.replace("CRAIGSLIST_", '').replace('SCORE_', ''): value
-        for key, value in app.config.items()
-        if key.startswith('SCORE_') or key.startswith('CRAIGSLIST_SCORE_')
+        for key, value in app.config.items() if key.startswith('SCORE_') or key.startswith('CRAIGSLIST_SCORE_')
     }
 
     stream = io.StringIO()
     location.export_bounding_boxes(stream)
 
     return render_template(
-        "settings.html",
-        email=email,
-        craigslist=craigslist,
-        scoring=scoring,
-        bboxes=stream.getvalue())
+        "settings.html", email=email, craigslist=craigslist, scoring=scoring, bboxes=stream.getvalue())

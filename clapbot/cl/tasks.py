@@ -15,7 +15,9 @@ from celery.utils.log import get_task_logger
 from celery.canvas import group
 
 from ..core import db, celery
-from .model import Listing, ListingExpirationCheck, Image, ScrapeRecord, ScrapeStatus
+from .model.listing import Listing, ListingExpirationCheck
+from .model.image import Image
+from .model.scrape import ScrapeRecord, ScrapeStatus
 from . import sites as cl_sites
 
 __all__ = ['download_listing', 'download_image']

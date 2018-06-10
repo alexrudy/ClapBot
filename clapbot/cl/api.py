@@ -43,10 +43,10 @@ def sites():
 @login_required
 def scrape(site, area, category):
     """Scrape craigslist now!"""
-    area = m.CraigslistArea.query.filter(m.CraigslistArea.name == area).join(
-        m.CraigslistArea.site).filter(m.CraigslistSite.name == site).first_or_404()
+    area = m.site.Area.query.filter(m.site.Area.name == area).join(
+        m.site.Area.site).filter(m.site.Site.name == site).first_or_404()
 
-    record = m.ScrapeRecord(area=area, category=category)
+    record = m.scrape.ScrapeRecord(area=area, category=category)
     db.session.add(record)
     db.session.commit()
 
@@ -83,7 +83,7 @@ def download_all():
 @bp.route("/image/<int:identifier>/full.jpg")
 def image(identifier):
     """Serve an image from the local database."""
-    img = m.Image.query.get_or_404(identifier)
+    img = m.image.Image.query.get_or_404(identifier)
     if img.full is not None and img.full:
         return send_file(io.BytesIO(img.full), mimetype='image/jpeg')
     else:
@@ -93,7 +93,7 @@ def image(identifier):
 @bp.route("/image/<int:identifier>/thumbnail.jpg")
 def thumbnail(identifier):
     """docstring for thumbnail"""
-    img = m.Image.query.get_or_404(identifier)
+    img = m.image.Image.query.get_or_404(identifier)
     if img.thumbnail is not None and img.thumbnail:
         return send_file(io.BytesIO(img.thumbnail), mimetype='image/jpeg')
     else:

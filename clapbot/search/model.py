@@ -4,6 +4,7 @@ import datetime as dt
 from sqlalchemy.orm import validates
 
 from ..core import db
+from ..cl.model import site
 
 
 class HousingSearchStatus(enum.Enum):
@@ -37,19 +38,15 @@ class HousingSearch(db.Model):
     require_images = db.Column(db.Boolean, default=True)
 
     def __init__(self, **kwargs):
-        from ..cl.model import CraigslistArea
-        if not isinstance(kwargs.get('area'), CraigslistArea) and kwargs.get('area') is not None:
-            kwargs['area'] = CraigslistArea._lookup(kwargs.pop('area'), site=kwargs.pop('site', None))
-        super().__init__(**kwargs)
+        super().__init__(**site.Area._handle_kwargs(kwargs))
 
     @validates("category")
     def validate_category(self, key, value):
         """Validate a craigslist site"""
-        from ..cl.model import CraigslistCategory
         # pylint: disable=unused-argument
-        if isinstance(value, CraigslistCategory):
+        if isinstance(value, site.Category):
             return value
-        value = CraigslistCategory.query.filter_by(name=value.lower()).one_or_none()
+        value = site.Category.query.filter_by(name=value.lower()).one_or_none()
         if value is None:
             raise ValueError("Invalid craigslist category")
         return value
@@ -57,11 +54,10 @@ class HousingSearch(db.Model):
     @validates("site")
     def validate_site(self, key, value):
         """Validate a craigslist site"""
-        from ..cl.model import CraigslistSite
         # pylint: disable=unused-argument
-        if isinstance(value, CraigslistSite):
+        if isinstance(value, site.Site):
             return value
-        value = CraigslistSite.query.filter_by(name=value.lower()).one_or_none()
+        value = site.Site.query.filter_by(name=value.lower()).one_or_none()
         if value is None:
             raise ValueError("Invalid craigslist site")
         return value
@@ -88,9 +84,9 @@ class HousingSearch(db.Model):
         return HousingSearchStatus.ACTIVE
 
     cl_site = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
-    site = db.relationship("CraigslistSite", backref=db.backref("searches", uselist=True, lazy='dynamic'))
+    site = db.relationship('site.Site', backref=db.backref("searches", uselist=True, lazy='dynamic'))
     cl_area = db.Column(db.Integer(), db.ForeignKey('clarea.id'))
-    area = db.relationship("CraigslistArea", backref=db.backref("searches", uselist=True, lazy='dynamic'))
+    area = db.relationship('site.Area', backref=db.backref("searches", uselist=True, lazy='dynamic'))
 
     cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
-    category = db.relationship("CraigslistCategory", backref=db.backref("searches", uselist=True, lazy='dynamic'))
+    category = db.relationship('site.Category', backref=db.backref("searches", uselist=True, lazy='dynamic'))

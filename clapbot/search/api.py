@@ -26,7 +26,7 @@ def get_scrape_records():
 
     for area, category in set(
         (hs.area, hs.category) for hs in query if hs.status == HousingSearchStatus.ACTIVE and hs.area.site.enabled):
-        yield m.ScrapeRecord(area=area, category=category)
+        yield m.scrape.ScrapeRecord(area=area, category=category)
 
 
 @bp.route('/scrape')

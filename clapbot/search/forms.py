@@ -3,26 +3,26 @@ from wtforms import StringField, SubmitField, DateField, TextAreaField, IntegerF
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, NumberRange
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
-from ..cl.model import CraigslistSite, CraigslistCategory, CraigslistArea
+from ..cl.model import site
 
 
 def enabled_sites():
-    return CraigslistSite.query.filter_by(enabled=True)
+    return site.Site.query.filter_by(enabled=True)
 
 
 def enabled_categories():
-    return CraigslistCategory.query
+    return site.Category.query
 
 
 def enabled_areas():
-    return CraigslistArea.query
+    return site.Area.query
 
 
 class HousingSearchCreate(FlaskForm):
     name = StringField(validators=[DataRequired()])
     description = TextAreaField()
     target_date = DateField(validators=[DataRequired()])
-    site = QuerySelectField('CraigslistSite', validators=[DataRequired()], query_factory=enabled_sites)
+    site = QuerySelectField(site.Site, validators=[DataRequired()], query_factory=enabled_sites)
 
     submit = SubmitField('Create')
 
