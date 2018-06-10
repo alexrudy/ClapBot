@@ -5,31 +5,30 @@ from flask import url_for
 import pytest
 
 
+def assert_redirect(response, path):
+    assert response.status_code == 302
+    assert url_parse(response.headers['Location']).path == path
+
+
 def test_login_flow(auth, client):
 
-    response = client.get('/')
-    assert response.status_code == 302
-    assert url_parse(response.headers['Location']).path == '/auth/login'
+    assert_redirect(client.get('/'), '/auth/login')
+    assert b"Sign In" in client.get('/auth/login').data
 
-    auth.login()
-    response = client.get('/')
-    assert response.status_code == 200
+    assert_redirect(auth.login(), '/')
+    assert client.get('/').status_code == 200
 
-    auth.logout()
-
-    response = client.get('/')
-    assert response.status_code == 302
-    assert url_parse(response.headers['Location']).path == '/auth/login'
+    assert_redirect(auth.logout(), '/auth/login')
+    assert_redirect(client.get('/'), '/auth/login')
 
 
 def test_registration_flow(auth, client):
 
-    response = client.get('/')
-    assert response.status_code == 302
-    assert url_parse(response.headers['Location']).path == '/auth/login'
+    assert_redirect(client.get('/'), '/auth/login')
 
     response = client.get('/auth/register')
     assert response.status_code == 200
+    assert b'Register' in response.data
 
     response = client.post(
         '/auth/register',
@@ -39,40 +38,29 @@ def test_registration_flow(auth, client):
             'password': 'other',
             'password2': 'other'
         })
-    assert response.status_code == 302
-    assert url_parse(response.headers['Location']).path == '/auth/login'
+    assert_redirect(response, '/auth/login')
 
-    auth.login(email='other@example.com', password='other')
-    response = client.get('/')
-    assert response.status_code == 200
-
-    auth.logout()
-
-    response = client.get('/')
-    assert response.status_code == 302
-    assert url_parse(response.headers['Location']).path == '/auth/login'
+    response = auth.login(email='other@example.com', password='other')
+    assert_redirect(response, '/')
+    assert client.get('/').status_code == 200
 
 
 def test_login_fail(auth):
 
     response = auth.login(email='test@example.com', password='wrong')
-    assert response.status_code == 302
+    assert_redirect(response, '/auth/login')
 
 
 def test_login_unregistered(auth):
 
-    response = auth.login(email='test@example.com', password='wrong')
-    assert response.status_code == 302
+    response = auth.login(email='other@example.com', password='wrong')
+    assert_redirect(response, '/auth/login')
 
 
 def test_login_redirect(auth, client):
 
     auth.login()
 
-    response = client.get('/auth/login')
-    assert response.status_code == 302
-    assert url_parse(response.headers['Location']).path == '/'
+    assert_redirect(client.get('/auth/login'), '/')
 
-    response = client.get('/auth/register')
-    assert response.status_code == 302
-    assert url_parse(response.headers['Location']).path == '/'
+    assert_redirect(client.get('/auth/register'), '/')
