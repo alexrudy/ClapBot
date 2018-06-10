@@ -11,6 +11,9 @@ ClApBot {{ title|default }}
     <h1>ClapBot</h1>
 </div>
 
+{{super()}}
+
+
 <div class='container listings'>
   {% set pagination = listings.paginate() %} {{ render_pagination(pagination, request.endpoint) }}
   <table border="0" cellspacing="5" cellpadding="5" class="table table-hover">

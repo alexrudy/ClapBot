@@ -7,45 +7,71 @@ ClapBot - Edit Search
 
 {% block content %}
 <div class='container'>
+    <div class='row'>
     <h2>Edit Search</h2>
     <hr>
-    <div class='row'>
-        <div class='col-md-1'></div>
-        <div class='col-md-8'>
-            <form action="" method='POST' class="form-horizontal">
-                    {{ form.hidden_tag() }}
-                    {{ wtf.form_errors(form, hiddens="only") }}
+    </div>
+    <form action="" method='POST' class="form-horizontal">
 
+    <div class='row'>
+        {{ form.hidden_tag() }}
+        {{ wtf.form_errors(form, hiddens="only") }}
+    </div>
+
+    <div class='row'>
+
+        <div class='col-md-4'>
                     {{ wtf.form_field(form.name) }}
 
                     <div class='form-group'>
                         <dl>
-                            <dt>Site</dt>
-                            <dd>{{ search.site.name|upper }}</dd>
                             <dt>Expiration Date</dt>
                             <dd>{{ search.expiration_date.strftime("%Y-%m-%d") }}</dd>
                             <dt>Owner</dt>
                             <dd>@{{ search.owner.username }}</dd>
                         </dl>
+                        <p><em>(You can't change this once the search has been created)</em></p>
                     </div>
-                    <hr>
 
                     {{ wtf.form_field(form.description) }}
                     {{ wtf.form_field(form.target_date) }}
-
-                    {{ wtf.form_field(form.area) }}
-
-                    {{ wtf.form_field(form.category) }}
-
-                    {{ wtf.form_field(form.price_min) }}
-                    {{ wtf.form_field(form.price_max) }}
-
-                    <div class='form-group'>
-                    {{ form.submit(class='btn btn-primary') }}
-                    </div>
-            </form>
         </div>
+        <div class='col-md-1'></div>
+        <div class='col-md-4'>
+
+                <div class='form-group'>
+                <dl>
+                    <dt>Site</dt>
+                    <dd>{{ search.site.name|upper }}</dd>
+                </dl>
+                <p><em>(You can't change this once the search has been created)</em></p>
+                </div>
+
+                {{ wtf.form_field(form.area) }}
+
+                {{ wtf.form_field(form.category) }}
+
+                {{ wtf.form_field(form.price_min) }}
+                {{ wtf.form_field(form.price_max) }}
+
+        </div>
+
     </div>
+    <hr>
+
+    <div class='row'>
+
+    </div>
+    <div class='form-group'>
+            {{ form.submit(class='btn btn-primary') }}
+            <a href="{{ url_for('user.profile', username=current_user.username) }}" class='btn btn-default' role="button">Cancel</a>
+
+            <form action="{{ url_for('search.delete', identifier=search.id) }}" method='POST'>
+                    <button type="submit  " class='btn btn-danger'>Delete</button>
+            </form>
+            </div>
+    </form>
+
 </div>
 
 {% endblock %}

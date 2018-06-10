@@ -20,23 +20,23 @@
         </a>
         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
           <li class='nav-item dropdown-item'>
-              {# <a href='{{url_for("cl.api.scrape", next=request.url)}}' alt='Get new listings from Craigslist'>
-                Scrape <span class='glyphicon glyphicon-refresh'></span>
-              </a> #}
+              <a href='{{url_for("search.api.scrape", next=request.url)}}' alt='Get new listings from Craigslist'>
+                <span class='glyphicon glyphicon-refresh'></span> Scrape
+              </a>
           </li>
           <li class='nav-item dropdown-item'>
               <a href='{{url_for("cl.api.download_all", next=request.url)}}' alt='Ensure all metadata is downloaded'>
-                  Download <span class='glyphicon glyphicon-cloud-download'></span>
+                <span class='glyphicon glyphicon-cloud-download'></span>  Download
               </a>
           </li>
           <li class='nav-item dropdown-item'>
-              <a href='{{url_for("core.mailer")}}'>Send Email
-                <span class='glyphicon glyphicon-envelope'></span>
+              <a href='{{url_for("core.mailer")}}'>
+                <span class='glyphicon glyphicon-envelope'></span> Send Email
               </a>
           </li>
           <li class='nav-item dropdown-item'>
-              <a href='{{url_for("cl.api.expire")}}'>Expire
-                <span class='glyphicon glyphicon-refresh'></span>
+              <a href='{{url_for("cl.api.expire")}}'>
+                <span class='glyphicon glyphicon-refresh'></span> Expire
               </a>
           </li>
         </ul>
