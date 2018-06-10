@@ -1,7 +1,8 @@
+import logging
+
 from werkzeug.urls import url_parse
 
 from flask import Blueprint, redirect, url_for, render_template, flash, request
-
 from flask_login import current_user, login_user, logout_user
 
 from ..core import db
@@ -10,6 +11,8 @@ from .model import User, UserStatus
 from .forms import LoginForm, RegistrationForm
 
 bp = Blueprint('auth', __name__, template_folder='templates')
+
+logger = logging.getLogger(__name__)
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -48,8 +51,8 @@ def register():
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).one_or_none()
 
+        user = User.query.filter_by(email=form.email.data).one_or_none()
         user.username = form.username.data
         user.set_password(form.password.data)
         user.status = UserStatus.active
