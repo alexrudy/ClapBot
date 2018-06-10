@@ -1,0 +1,18 @@
+session_name: clapbot
+shell_command_before:
+  - direnv reload
+  - ./scripts/dc up -d flask.debug
+windows:
+  - window_name: src
+    panes:
+      - ''
+  - window_name: proxy
+    panes: ['./scripts/run-proxy.sh']
+  - window_name: psql
+    panes: ['./scripts/psql']
+  - window_name: flask
+    panes: ['./scripts/dc logs -f flask.debug']
+  - window_name: celery
+    panes: ['./scripts/dc logs -f celery.worker']
+  - window_name: celery-flower
+    panes: ['./scripts/dc up celery.flower']

@@ -36,6 +36,7 @@ mypy = "*"
 "flake8" = "*"
 yapf = "*"
 pytest-socket = "*"
+tmuxp = "*"
 
 [requires]
 python_version = "3.6"
