@@ -6,6 +6,7 @@ from flask import redirect, url_for, flash, request
 from flask_login import current_user, login_required
 
 from ..core import db
+from ..cl.model import Listing
 from .model import HousingSearch
 from .forms import HousingSearchCreate, HousingSearchEditForm
 
@@ -55,7 +56,7 @@ def delete(identifier):
     return redirect(url_for('user.profile', username=current_user.username))
 
 
-@bp.route('/<identifier>', methods=['GET', 'POST'])
+@bp.route('/<identifier>/edit', methods=['GET', 'POST'])
 def edit(identifier):
     hs = HousingSearch.query.get_or_404(identifier)
 
@@ -71,3 +72,13 @@ def edit(identifier):
         return redirect(url_for('user.profile', username=current_user.username))
 
     return render_template('search/edit.html', form=form, search=hs)
+
+
+@bp.route('/<identifier>')
+def view(identifier):
+    """View the results of a single search"""
+
+    hs = HousingSearch.query.get_or_404(identifier)
+    listings = Listing.query.filter(hs.query_predicate()).order_by(Listing.created)
+
+    return render_template('search/view.html', search=hs, listings=listings)

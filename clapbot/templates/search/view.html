@@ -1,16 +1,70 @@
 {% extends "base.html" %}
-{% block title %}Active Housing Searches{% endblock %}
+{% from "_pagination.html" import render_pagination %}
+{% set active_page = 'search.view' %}
+
+{% block title %}ClapBot - {{ search.name }}{% endblock %}
 {% block content %}
-<div class='container'>
-    <h1>Active Housing Searches</h1>
-</div>
 
 <div class='container'>
-    {% include "search/_searches.html" %}
-</div>
-<div class='container'>
-    <p>
-        <a href="{{ url_for('.create')}}">Create a new search</a>
-    </p>
+
+    <div class='row'>
+
+        <h1>Housing Search: {{ search.name }}</h1>
+        <p>{{ search.description }}</p>
+
+    </div>
+    <div class='row'>
+        <div class='col-md-4'>
+        <dl class="dl-horizontal">
+            <dt>Site</dt>
+            <dd><span class="label label-default">{{ search.site.name|upper }}</span></dd>
+            <dt>Area</dt>
+            <dd><span class="label label-default">{{ search.area.name|upper }}</span></dd>
+            <dt>Category</dt>
+            <dd><span class="label label-default">{{ search.category.name|upper }}</span></dd>
+            <dt>Price</dt>
+            <dd>
+                {% if search.price_min and search.price_max %}
+                ${{ '%.2f'|format(search.price_min) }} to ${{ '%.2f'|format(search.price_max) }}
+                {% elif search.price_min %}
+                At least ${{ '%.2f'|format(search.price_min) }}
+                {% elif search.price_max %}
+                At most ${{ '%.2f'|format(search.price_max) }}
+                {% else %}
+                {% endif %}
+            </dd>
+            <dt>Target Date</dt>
+            <dd>{{ search.target_date.strftime("%Y-%m-%d") }}</dd>
+            <dt>Expiration Date</dt>
+            <dd>{{ search.expiration_date.strftime("%Y-%m-%d") }}</dd>
+            <dt>Owner</dt>
+            <dd><a href="{{ url_for('user.profile', username=search.owner.username) }}">@{{ search.owner.username }}</a></dd>
+            <dt>Status</dt>
+            <dd>{{ search.status.name }}</dd>
+        </dl>
+        </div>
+        <div class='col-md-4'>
+            <form action="{{ url_for('search.delete', identifier=search.id) }}" method='POST'>
+                <button type="submit  " class='btn btn-danger'>Delete</button>
+            </form>
+            <p>
+                <a href="{{ url_for('search.edit', identifier=search.id) }}" class='btn btn-primary' role="button">Edit</a>
+            </p>
+
+        </div>
+    </div>
+    {{super()}}
+    <div class='row'>
+        {% set pagination = listings.paginate() %} {{ render_pagination(pagination, request.endpoint, identifier=search.id) }}
+        <table border="0" cellspacing="5" cellpadding="5" class="table table-hover">
+            <thead>
+            {% include "_entry_header.html" %}
+            </thead>
+            <tbody>
+            {% for listing in pagination.items %} {% include "_entry.html" %} {% endfor %}
+            </tbody>
+        </table>
+        {{ render_pagination(pagination, request.endpoint, identifier=search.id) }}
+    </div>
 </div>
 {% endblock %}

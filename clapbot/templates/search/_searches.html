@@ -16,7 +16,9 @@
         <tbody>
             {% for search in searches %}
             <tr>
-                <td>{{ search.name }}</td>
+                <td>
+                    <a href="{{ url_for('search.view', identifier=search.id)}}">{{ search.name }}</a>
+                </td>
                 <td><span class="label label-default">{{ search.site.name|upper }}</span></td>
                 <td><span class="label label-default">{{ search.area.name|upper }}</span></td>
                 <td><span class="label label-default">{{ search.category.name|upper }}</span></td>

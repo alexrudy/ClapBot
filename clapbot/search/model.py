@@ -2,9 +2,10 @@ import enum
 import datetime as dt
 
 from sqlalchemy.orm import validates
+from sqlalchemy import and_
 
 from ..core import db
-from ..cl.model import site
+from ..cl.model import site, Listing
 
 
 class HousingSearchStatus(enum.Enum):
@@ -90,3 +91,13 @@ class HousingSearch(db.Model):
 
     cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
     category = db.relationship('site.Category', backref=db.backref("searches", uselist=True, lazy='dynamic'))
+
+    def query_predicate(self):
+        """Return the listing predicate appropriate for this search."""
+        predicate = and_(
+            Listing.price.between(self.price_min, self.price_max), Listing.area == self.area,
+            Listing.category == self.category)
+        if self.require_images:
+            pass
+            #TODO: This should actually ensure that images are included.
+        return predicate
