@@ -14,6 +14,13 @@ from clapbot.users.forms import LoginForm
 # pylint: disable=redefined-outer-name,unused-argument
 
 
+def pytest_collection_modifyitems(session, config, items):
+    """Make celery tests run last (they are slow!)"""
+    for i, item in enumerate(items[:]):
+        if item.get_marker("celery"):
+            items.insert(-1, items.pop(i))
+
+
 def run_script(engine, script):
     connection = engine.raw_connection()
     try:

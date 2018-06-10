@@ -15,12 +15,12 @@ bp = Blueprint('auth', __name__, template_folder='templates')
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('core.home'))
 
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user is None or not user.check_password(form.password.data):
+        if user is None or user.password is None or not user.check_password(form.password.data):
             flash('Invalid email or password')
             return redirect(url_for('.login'))
 
