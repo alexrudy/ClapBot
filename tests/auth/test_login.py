@@ -51,3 +51,6 @@ def test_registration_flow(auth, client):
     response = client.get('/')
     assert response.status_code == 302
     assert url_parse(response.headers['Location']).path == '/auth/login'
+
+    response = auth.login(email='other@example.com', password='wrong')
+    assert response.status_code == 302
