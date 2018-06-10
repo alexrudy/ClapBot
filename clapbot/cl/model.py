@@ -146,6 +146,9 @@ class Listing(db.Model):
 
     notified = db.Column(db.Boolean, default=False)
 
+    def __init__(self, **kwargs):
+        super().__init__(**CraigslistArea._handle_kwargs(kwargs))
+
     def __repr__(self):
         return f"Listing(id={self.id} cl={self.cl_id})"
 
@@ -186,17 +189,21 @@ class Listing(db.Model):
         value = CraigslistSite.query.filter_by(name=value.lower()).one_or_none()
         if value is None:
             raise ValueError("Invalid craigslist site")
+        if self.area is not None and self.area not in value.areas:
+            raise ValueError(f"Invalid area, must be a member of {value}")
         return value
 
     @validates("area")
     def validate_area(self, key, value):
-        """Validate a craigslist site"""
+        """Validate a craigslist area"""
         # pylint: disable=unused-argument
         if not isinstance(value, CraigslistArea):
             value = CraigslistArea.query.filter_by(name=value.lower(), site=self.site).one_or_none()
             if value is None:
                 raise ValueError("Invalid craigslist area")
-        if value not in self.site.areas:
+        if self.site is None:
+            self.site = value.site
+        elif value not in self.site.areas:
             raise ValueError(f"Invalid area, must be a member of {self.site}")
         return value
 
@@ -397,10 +404,21 @@ class CraigslistArea(db.Model):
         return self.name.upper()
 
     @classmethod
+    def _handle_kwargs(cls, kwargs):
+        """Handle initialization kwargs"""
+        if not isinstance(kwargs.get('area'), cls):
+            kwargs['area'] = cls._lookup(kwargs.pop('area'), site=kwargs.pop('site', None))
+        if 'site' in kwargs:
+            raise ValueError("Can't pass site={site} with area={area}".format_map(kwargs))
+        return kwargs
+
+    @classmethod
     def _lookup(cls, name, site=None):
         q = cls.query.filter_by(name=name)
-        if site is not None:
-            q = q.join(CraigslistSite.query.filter_by(name=site))
+        if isinstance(site, CraigslistSite):
+            q = q.filter(cls.site_id == site.id)
+        elif site is not None:
+            q = q.join(CraigslistSite).filter(CraigslistSite.name == site)
         return q.one_or_none()
 
 
@@ -445,11 +463,7 @@ class ScrapeRecord(db.Model):
     records = db.Column(db.Integer(), default=0)
 
     def __init__(self, **kwargs):
-        if not isinstance(kwargs.get('area'), CraigslistArea):
-            kwargs['area'] = CraigslistArea._lookup(kwargs.pop('area'), site=kwargs.pop('site', None))
-        if 'site' in kwargs:
-            raise ValueError("Can't pass site={site} with area={area}".format_map(kwargs))
-        super().__init__(**kwargs)
+        super().__init__(**CraigslistArea._handle_kwargs(kwargs))
 
     def __repr__(self):
         return "ScrapeRecord(id={}, stie={}, area={}, category={}, status={})".format(
