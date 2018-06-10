@@ -30,7 +30,7 @@ class RequestsTask(celery.Task):
         try:
             return super().__call__(*args, **kwargs)
         except requests.Timeout as exc:
-            print("Caught timeout, retrying: {}/{}".format(self.request.retries, self.max_retries))
+            logger.exception("Caught timeout, retrying: {}/{}".format(self.request.retries, self.max_retries))
             self.retry(exc=exc, countdown=int(random.uniform(2, 4)**self.request.retries))
 
 
@@ -92,7 +92,10 @@ def download_images_for_listing(listing_id, force=False):
     listing = Listing.query.get(listing_id)
     image_ids = [image.id for image in listing.images if (image.full is None or image.thumbnail is None) or force]
     image_group = group([download_image.si(img_id, force=force) for img_id in image_ids])
-    result = image_group.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
+    if not image_group:
+        logger.info("No images to download for lisitng {}".format(listing))
+        return None
+    result = image_group.skew(start=0, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
     result.save()
     return result.id
 
@@ -143,21 +146,25 @@ def new_listing_pipeline(listing_json, force=False):
             | download_images_for_listing.s(force=force))
 
 
+def scrape_pipeline(record, filters=None, limit=None, force=False):
+    """Using a scrape record, build a CL scraping pipeline for celery."""
+    g = group([new_listing_pipeline(result, force=force) for result in record.scraper(filters=filters, limit=limit)])
+    if not g.tasks:
+        return None
+    result = g.delay()
+    record.mark_celery_result(result)
+    return result
+
+
 @celery.task()
 def scrape(id, filters=None, limit=None, force=False):
     """Scrape listings from craigslist, and ingest them properly."""
     limit = limit if limit is not None else app.config['CRAIGSLIST_MAX_SCRAPE']
 
     record = ScrapeRecord.query.get(id)
-    g = group([new_listing_pipeline(result, force=force) for result in record.scraper(filters=filters, limit=limit)])
-    result = g.delay()
-    result.save()
-
-    record.scraped_at = dt.datetime.now()
-    record.status = ScrapeStatus.started
-    record.result = result.id
-    db.session.commit()
-
+    result = scrape_pipeline(record, limit=limit, filters=filters, force=force)
+    if result is None:
+        return None
     return result.id
 
 
@@ -183,7 +190,9 @@ def export_listings(force=False):
     """Ensure listing infor is saved to disk."""
     # pylint: disable=not-an-iterable
     exporters = group([export_listing.s(listing.id, force=force) for listing in Listing.query])
-    result = exporters.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
+    if not exporters.tasks:
+        return None
+    result = exporters.skew(start=0, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
     result.save()
     return result.id
 
@@ -198,7 +207,7 @@ def ensure_downloaded(force=False):
 
     downloaders = group([(download_listing.si(listing.id, force=force)
                           | download_images_for_listing.s(force=force)) for listing in listings])
-    result = downloaders.skew(start=1, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
+    result = downloaders.skew(start=0, stop=app.config['CRAIGSLIST_TASK_SKEW']).delay()
     result.save()
     return result.id
 
@@ -258,6 +267,8 @@ def check_expirations(limit=100, force=False):
     listings = listings.limit(limit)
 
     g = group([check_expiration.si(listing.id) for listing in listings])
+    if not g.tasks:
+        return None
     result = g.delay()
     result.save()
     return result.id

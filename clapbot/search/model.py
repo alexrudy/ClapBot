@@ -1,6 +1,8 @@
 import enum
 import datetime as dt
 
+from sqlalchemy.orm import validates
+
 from ..core import db
 
 
@@ -34,6 +36,36 @@ class HousingSearch(db.Model):
 
     require_images = db.Column(db.Boolean, default=True)
 
+    def __init__(self, **kwargs):
+        from ..cl.model import CraigslistArea
+        if not isinstance(kwargs.get('area'), CraigslistArea) and kwargs.get('area') is not None:
+            kwargs['area'] = CraigslistArea._lookup(kwargs.pop('area'), site=kwargs.pop('site', None))
+        super().__init__(**kwargs)
+
+    @validates("category")
+    def validate_category(self, key, value):
+        """Validate a craigslist site"""
+        from ..cl.model import CraigslistCategory
+        # pylint: disable=unused-argument
+        if isinstance(value, CraigslistCategory):
+            return value
+        value = CraigslistCategory.query.filter_by(name=value.lower()).one_or_none()
+        if value is None:
+            raise ValueError("Invalid craigslist category")
+        return value
+
+    @validates("site")
+    def validate_site(self, key, value):
+        """Validate a craigslist site"""
+        from ..cl.model import CraigslistSite
+        # pylint: disable=unused-argument
+        if isinstance(value, CraigslistSite):
+            return value
+        value = CraigslistSite.query.filter_by(name=value.lower()).one_or_none()
+        if value is None:
+            raise ValueError("Invalid craigslist site")
+        return value
+
     @property
     def filters(self):
         data = {}
@@ -51,7 +83,7 @@ class HousingSearch(db.Model):
             return HousingSearchStatus.DISABLED
         if self.expiration_date <= dt.datetime.now():
             return HousingSearchStatus.EXPIRED
-        if self.category is None:
+        if self.category is None or self.area is None:
             return HousingSearchStatus.PENDING
         return HousingSearchStatus.ACTIVE
 

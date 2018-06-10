@@ -451,12 +451,22 @@ class ScrapeRecord(db.Model):
             raise ValueError("Can't pass site={site} with area={area}".format_map(kwargs))
         super().__init__(**kwargs)
 
+    def __repr__(self):
+        return "ScrapeRecord(id={}, stie={}, area={}, category={}, status={})".format(
+            self.id, self.site.name, self.area.name, self.category.name, self.status)
+
     def scraper(self, filters=None, limit=None):
         from .scrape import make_scraper
         for result in make_scraper(
                 site=self.site.name, area=self.area.name, category=self.category.name, filters=filters, limit=limit):
             self.records += 1
             yield result
+
+    def mark_celery_result(self, result):
+        result.save()
+        self.scraped_at = dt.datetime.now()
+        self.status = ScrapeStatus.started
+        self.result = result.id
 
     @validates("category")
     def validate_category(self, key, value):

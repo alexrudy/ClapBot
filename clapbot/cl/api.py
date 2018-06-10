@@ -10,19 +10,13 @@ from . import tasks as t
 from . import model as m
 
 from ..core import db
+from ..utils import next_url
 
 #: API Blueprint for craigslist
 bp = Blueprint('cl.api', __name__)
 
 # Task control buttons:
 # --
-
-
-def next_url(request, default='core.home'):
-    next_page = request.args.get('next')
-    if not next_page or url_parse(next_page).netloc != '':
-        next_page = url_for(default)
-    return next_page
 
 
 @bp.route("/sites/<site>")

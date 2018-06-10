@@ -9,7 +9,7 @@ else
 fi
 
 if (type pushover > /dev/null); then
-    pushover -s$RESULT "Clapbot ${SERVICE} tests finished"
+    pushover -s$RESULT "Clapbot tests finished"
 fi
 
 exit $RESULT

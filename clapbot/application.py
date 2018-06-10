@@ -41,33 +41,28 @@ celery = create_celery_app()
 
 # pylint: disable=redefined-outer-name
 def init_celery_app(app, celery):
-    celery.conf.update({
-        key[len("CELERY_"):].lower(): value
-        for key, value in app.config.items()
-    })
+    celery.conf.update({key[len("CELERY_"):].lower(): value for key, value in app.config.items()})
     celery.Task.flask_app = app
 
 
 def create_app():
     app = Flask('clapbot')
-    del app.logger.handlers[:]  # pylint: disable=no-member
+    del app.logger.handlers[:]    # pylint: disable=no-member
     app.logger.propogate = True
     app.config.from_object('clapbot.defaults')
     app.config['CLAPBOT_CONFIG_DIR'] = str(Path.cwd())
 
     if os.environ.get('CLAPBOT_SETTINGS', ''):
         app.config.from_envvar('CLAPBOT_SETTINGS')
-        app.logger.info(  # pylint: disable=no-member
-            f"Loaded configuration from CLAPBOT_SETTINGS={os.environ['CLAPBOT_SETTINGS']}"
-        )
+        app.logger.info(    # pylint: disable=no-member
+            f"Loaded configuration from CLAPBOT_SETTINGS={os.environ['CLAPBOT_SETTINGS']}")
 
     if os.environ.get('CLAPBOT_ENVIRON', ''):
-        path = Path.cwd(
-        ) / 'config' / os.environ['CLAPBOT_ENVIRON'] / 'clapbot.cfg'
+        path = Path.cwd() / 'config' / os.environ['CLAPBOT_ENVIRON'] / 'clapbot.cfg'
         if path.exists():
             app.config['CLAPBOT_CONFIG_DIR'] = str(path.parent)
             app.config.from_pyfile(str(path))
-            app.logger.info(  # pylint: disable=no-member
+            app.logger.info(    # pylint: disable=no-member
                 f"Loaded configuration from {path!s} via CLAPBOT_ENVIRON")
 
     init_celery_app(app, celery)
@@ -83,14 +78,13 @@ def create_app():
     Scss(app, static_dir='clapbot/static', asset_dir='clapbot/assets')
     Bootstrap(app)
 
-    app.config['CLAPBOT_PASSWORD_HASH'] = bcrypt.generate_password_hash(
-        app.config.pop('CLAPBOT_PASSWORD'))
+    app.config['CLAPBOT_PASSWORD_HASH'] = bcrypt.generate_password_hash(app.config.pop('CLAPBOT_PASSWORD'))
 
     from .views import bp as core_bp
     app.register_blueprint(core_bp)
 
     from .cl.api import bp as cl_api_bp
-    app.register_blueprint(cl_api_bp, url_prefix='/cl/api/v1/')
+    app.register_blueprint(cl_api_bp, url_prefix='/api/cl/v1/')
 
     from .users.auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth/')
@@ -98,8 +92,11 @@ def create_app():
     from .users.views import bp as user_bp
     app.register_blueprint(user_bp, url_prefix='/users/')
 
+    from .search.api import bp as hs_api_bp
+    app.register_blueprint(hs_api_bp, url_prefix='/api/hs/v1/')
+
     from .search.views import bp as hs_bp
-    app.register_blueprint(hs_bp, url_prefix='/hs/')
+    app.register_blueprint(hs_bp, url_prefix='/search/')
 
     @app.after_request
     def add_header(r):
