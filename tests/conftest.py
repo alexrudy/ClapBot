@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
+
 import pytest
 
 from celery.contrib.testing.app import DEFAULT_TEST_CONFIG

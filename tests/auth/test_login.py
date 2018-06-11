@@ -1,14 +1,8 @@
 import logging
 
-from werkzeug.urls import url_parse
-from flask import url_for
+from helpers import assert_redirect
 
 import pytest
-
-
-def assert_redirect(response, path):
-    assert response.status_code == 302
-    assert url_parse(response.headers['Location']).path == path
 
 
 def test_login_flow(auth, client):

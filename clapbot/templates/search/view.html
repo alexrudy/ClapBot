@@ -13,6 +13,7 @@
         <p>{{ search.description }}</p>
 
     </div>
+    <hr>
     <div class='row'>
         <div class='col-md-4'>
         <dl class="dl-horizontal">
@@ -44,27 +45,38 @@
         </dl>
         </div>
         <div class='col-md-4'>
-            <form action="{{ url_for('search.delete', identifier=search.id) }}" method='POST'>
-                <button type="submit  " class='btn btn-danger'>Delete</button>
-            </form>
-            <p>
-                <a href="{{ url_for('search.edit', identifier=search.id) }}" class='btn btn-primary' role="button">Edit</a>
-            </p>
-
+            <dl>
+                <dt>Controls</dt>
+                <dd>
+                    <form action="{{ url_for('search.delete', identifier=search.id) }}" method='POST'>
+                        <a href="{{ url_for('search.edit', identifier=search.id) }}" class='btn btn-primary' role="button">Edit</a>
+                        <button type="submit  " class='btn btn-danger'>Delete</button>
+                    </form>
+                </dd>
+                <dt>Status</dt>
+                <dd>
+                    <p>{{ listings.count() }} listings recorded.</p>
+                    <p>Last scraped {{ record.records }} records from {{ record.site }} / {{ record.area }} at {{ record.scraped_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </dd>
+            </dl>
         </div>
     </div>
+    <hr>
+
     {{super()}}
+
     <div class='row'>
-        {% set pagination = listings.paginate() %} {{ render_pagination(pagination, request.endpoint, identifier=search.id) }}
-        <table border="0" cellspacing="5" cellpadding="5" class="table table-hover">
-            <thead>
-            {% include "_entry_header.html" %}
-            </thead>
-            <tbody>
-            {% for listing in pagination.items %} {% include "_entry.html" %} {% endfor %}
-            </tbody>
-        </table>
-        {{ render_pagination(pagination, request.endpoint, identifier=search.id) }}
+            {% set pagination = listings.paginate() %} {{ render_pagination(pagination, request.endpoint, identifier=search.id) }}
+            <table border="0" cellspacing="5" cellpadding="5" class="table table-hover">
+                <thead>
+                {% include "_entry_header.html" %}
+                </thead>
+                <tbody>
+                {% for listing in pagination.items %} {% include "_entry.html" %} {% endfor %}
+                </tbody>
+            </table>
+            {{ render_pagination(pagination, request.endpoint, identifier=search.id) }}
     </div>
+
 </div>
 {% endblock %}

@@ -1,12 +1,14 @@
 import datetime as dt
 
 from flask import Blueprint, render_template, current_app
-from flask import redirect, url_for, flash, request
+from flask import redirect, url_for, flash
 
 from flask_login import current_user, login_required
 
+from sqlalchemy import or_
+
 from ..core import db
-from ..cl.model import Listing
+from ..cl.model import Listing, scrape
 from .model import HousingSearch
 from .forms import HousingSearchCreate, HousingSearchEditForm
 
@@ -48,6 +50,7 @@ def create():
 
 
 @bp.route('/<identifier>/delete', methods=['GET', 'POST'])
+@login_required
 def delete(identifier):
     hs = HousingSearch.query.get_or_404(identifier)
 
@@ -57,6 +60,7 @@ def delete(identifier):
 
 
 @bp.route('/<identifier>/edit', methods=['GET', 'POST'])
+@login_required
 def edit(identifier):
     hs = HousingSearch.query.get_or_404(identifier)
 
@@ -75,10 +79,28 @@ def edit(identifier):
 
 
 @bp.route('/<identifier>')
+@login_required
 def view(identifier):
     """View the results of a single search"""
 
     hs = HousingSearch.query.get_or_404(identifier)
-    listings = Listing.query.filter(hs.query_predicate()).order_by(Listing.created)
+    listings = Listing.query.filter(hs.query_predicate()).order_by(Listing.created.desc())
 
-    return render_template('search/view.html', search=hs, listings=listings)
+    record = scrape.Record.query.filter(scrape.Record.area == hs.area, scrape.Record.category == hs.category).order_by(
+        scrape.Record.created_at, scrape.Record.status != scrape.Status.pending).first()
+
+    return render_template('search/view.html', search=hs, listings=listings, record=record)
+
+
+@bp.route('/')
+@login_required
+def home():
+    """Home page view, with results from all searches."""
+
+    predicates = []
+    for hs in HousingSearch.query.filter(HousingSearch.owner == current_user):
+        predicates.append(hs.query_predicate())
+
+    listings = Listing.query.filter(or_(*predicates)).order_by(Listing.created.desc())
+
+    return render_template('search/home.html', listings=listings)

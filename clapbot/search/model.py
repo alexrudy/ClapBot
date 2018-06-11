@@ -99,5 +99,5 @@ class HousingSearch(db.Model):
             Listing.category == self.category)
         if self.require_images:
             pass
-            #TODO: This should actually ensure that images are included.
+            # TODO: This should actually ensure that images are included.
         return predicate

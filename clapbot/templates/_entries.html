@@ -1,0 +1,12 @@
+<div class='row'>
+        {% set pagination = listings.paginate() %} {{ render_pagination(pagination, request.endpoint) }}
+        <table border="0" cellspacing="5" cellpadding="5" class="table table-hover">
+            <thead>
+            {% include "_entry_header.html" %}
+            </thead>
+            <tbody>
+            {% for listing in pagination.items %} {% include "_entry.html" %} {% endfor %}
+            </tbody>
+        </table>
+        {{ render_pagination(pagination, request.endpoint) }}
+</div>

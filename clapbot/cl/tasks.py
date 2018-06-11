@@ -165,6 +165,9 @@ def scrape(id, filters=None, limit=None, force=False):
 
     record = Record.query.get(id)
     result = scrape_pipeline(record, limit=limit, filters=filters, force=force)
+
+    db.session.commit()
+
     if result is None:
         return None
     return result.id

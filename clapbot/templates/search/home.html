@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% set active_page = 'search.home' %}
+
+{% block title %}ClapBot - Home{% endblock %}
+{% block content %}
+
+<div class='container'>
+
+    <div class='row'>
+
+        <h1>Housing Search</h1>
+
+    </div>
+    <hr>
+
+    {{super()}}
+
+    {% include "_entries.html" %}
+
+</div>
+{% endblock %}
