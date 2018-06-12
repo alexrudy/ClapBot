@@ -10,7 +10,7 @@ from ..utils import next_url
 from ..cl import model as m
 from ..cl import tasks as t
 
-from .model import HousingSearch, HousingSearchStatus
+from .model import HousingSearch, Status
 
 bp = Blueprint("search.api", __name__)
 
@@ -25,7 +25,7 @@ def get_scrape_records():
                                        HousingSearch.expiration_date >= dt.datetime.now())
 
     for area, category in set(
-        (hs.area, hs.category) for hs in query if hs.status == HousingSearchStatus.ACTIVE and hs.area.site.enabled):
+        (hs.area, hs.category) for hs in query if hs.status == Status.ACTIVE and hs.area.site.enabled):
         yield m.scrape.Record(area=area, category=category)
 
 

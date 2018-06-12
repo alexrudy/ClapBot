@@ -4,11 +4,11 @@ import datetime as dt
 from sqlalchemy.orm import validates
 from sqlalchemy import and_
 
-from ..core import db
-from ..cl.model import site, Listing
+from ...core import db
+from ...cl.model import site, Listing
 
 
-class HousingSearchStatus(enum.Enum):
+class Status(enum.Enum):
     PENDING = enum.auto()
     ACTIVE = enum.auto()
     EXPIRED = enum.auto()
@@ -37,6 +37,14 @@ class HousingSearch(db.Model):
     price_max = db.Column(db.Integer())
 
     require_images = db.Column(db.Boolean, default=True)
+
+    cl_site = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
+    site = db.relationship('site.Site', backref=db.backref("searches", uselist=True, lazy='dynamic'))
+    cl_area = db.Column(db.Integer(), db.ForeignKey('clarea.id'))
+    area = db.relationship('site.Area', backref=db.backref("searches", uselist=True, lazy='dynamic'))
+
+    cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
+    category = db.relationship('site.Category', backref=db.backref("searches", uselist=True, lazy='dynamic'))
 
     def __init__(self, **kwargs):
         super().__init__(**site.Area._handle_kwargs(kwargs))
@@ -76,21 +84,17 @@ class HousingSearch(db.Model):
 
     @property
     def status(self):
+        """What is the state of this search. Inferred from row contents.
+
+        :todo: This should be a hybrid property.
+        """
         if not self.enabled:
-            return HousingSearchStatus.DISABLED
+            return Status.DISABLED
         if self.expiration_date <= dt.datetime.now():
-            return HousingSearchStatus.EXPIRED
+            return Status.EXPIRED
         if self.category is None or self.area is None:
-            return HousingSearchStatus.PENDING
-        return HousingSearchStatus.ACTIVE
-
-    cl_site = db.Column(db.Integer(), db.ForeignKey('clsite.id'))
-    site = db.relationship('site.Site', backref=db.backref("searches", uselist=True, lazy='dynamic'))
-    cl_area = db.Column(db.Integer(), db.ForeignKey('clarea.id'))
-    area = db.relationship('site.Area', backref=db.backref("searches", uselist=True, lazy='dynamic'))
-
-    cl_category = db.Column(db.Integer(), db.ForeignKey('clcategory.id'))
-    category = db.relationship('site.Category', backref=db.backref("searches", uselist=True, lazy='dynamic'))
+            return Status.PENDING
+        return Status.ACTIVE
 
     def query_predicate(self):
         """Return the listing predicate appropriate for this search."""
