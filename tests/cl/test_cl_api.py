@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from celery.result import AsyncResult
+from celery.result import AsyncResult, GroupResult
 
 from clapbot.cl import tasks
 
@@ -31,11 +31,12 @@ def test_image(client, craigslist, image):
 
 
 @pytest.mark.celery
-def test_scrape(client, auth, craigslist, celery_worker, celery_timeout):
+def test_scrape(client, auth, craigslist, celery_worker, celery_app, celery_timeout):
     auth.login()
     response = client.get(f'{URL_PREFIX}/scrape/sfbay/eby/apa')
     assert response.status_code == 302
     result = AsyncResult(response.headers['X-result-token'])
+    result = GroupResult.restore(result.get(timeout=celery_timeout), app=celery_app)
     result.get(timeout=celery_timeout)
 
 
