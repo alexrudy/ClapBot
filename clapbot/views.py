@@ -13,7 +13,8 @@ from flask_login import login_required
 import redis
 
 from .core import db, bcrypt
-from .model import UserListingInfo, BoundingBox
+from .model import UserListingInfo
+from .search.model import BoundingBox
 from .cl.model import Listing
 from .cl.model.image import Image
 from . import location
