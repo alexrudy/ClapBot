@@ -1,5 +1,7 @@
 import pytest
 
+from celery.result import AsyncResult
+
 from clapbot.cl import scrape
 from clapbot.cl import utils
 
@@ -51,3 +53,15 @@ def test_iter_scraped(app, housing, nointernet, listing_json):
     with app.app_context():
         listings = list(scrape.make_scraper('sfbay', 'eby', 'apa', filters=None, limit=1))
     assert listings == [listing_json]
+
+
+@pytest.mark.celery
+def test_scrape_single(client, auth, craigslist, celery_worker, celery_timeout):
+
+    auth.login()
+    response = client.get(f'/api/hs/v1/scrape/1')
+    assert response.status_code == 302
+    assert 'X-result-token' in response.headers
+
+    result = AsyncResult(response.headers['X-result-token'])
+    result.get(timeout=celery_timeout)

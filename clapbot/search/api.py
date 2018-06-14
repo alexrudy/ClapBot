@@ -76,8 +76,7 @@ def scrape_single(identifier):
     db.session.commit()
 
     result = task.delay()
-    result.save()
 
-    response = redirect(next_url(response))
+    response = redirect(next_url(request))
     response.headers['X-result-token'] = result.id
     return response
