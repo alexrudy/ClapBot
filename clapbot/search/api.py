@@ -17,6 +17,11 @@ bp = Blueprint("search.api", __name__)
 logger = logging.getLogger(__name__)
 
 
+def record_from_search(search):
+    """Construct a search record from a housing search."""
+    return m.scrape.Record(area=search.area, category=search.category)
+
+
 def get_scrape_records():
     """Iterate over the scrape records for enabled housing searches."""
 
@@ -50,4 +55,29 @@ def scrape():
         result.save()
         response.headers['X-result-token'] = result.id
 
+    return response
+
+
+@bp.route('/scrape/<identifier>')
+def scrape_single(identifier):
+    """Scrape a single search object."""
+
+    search = HousingSearch.query.get_or_404(identifier)
+
+    if not (search.status == Status.ACTIVE and search.area.site.enabled):
+        return redirect(next_url(request))
+
+    record = record_from_search(search)
+    db.session.add(record)
+    db.session.flush()
+
+    task = t.scrape.s(record.id)
+
+    db.session.commit()
+
+    result = task.delay()
+    result.save()
+
+    response = redirect(next_url(response))
+    response.headers['X-result-token'] = result.id
     return response

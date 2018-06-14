@@ -27,3 +27,13 @@ def test_scrape(client, auth, monkeypatch):
     response = client.get(f'/api/hs/v1/scrape')
     assert response.status_code == 302
     assert 'X-result-token' not in response.headers
+
+
+def test_scrape_single(client, auth, monkeypatch):
+
+    monkeypatch.setattr('clapbot.search.api.get_scrape_records', list)
+
+    auth.login()
+    response = client.get(f'/api/hs/v1/scrape/4')
+    assert response.status_code == 302
+    assert 'X-result-token' not in response.headers
