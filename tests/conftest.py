@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 
 import pytest
 
@@ -15,6 +14,11 @@ from clapbot.users.model import User
 from clapbot.users.forms import LoginForm
 
 # pylint: disable=redefined-outer-name,unused-argument
+
+# Expose our pytest helpers internally without making the test
+# tree into a package.
+sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
+pytest.register_assert_rewrite("helpers")
 
 
 def pytest_collection_modifyitems(session, config, items):

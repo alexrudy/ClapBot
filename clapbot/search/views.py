@@ -21,7 +21,7 @@ def create():
 
     form = HousingSearchCreate()
     if form.validate_on_submit():
-        if len(current_user.housing_searches) > current_app.config['CRAIGSLIST_MAX_USER_SEARCHES']:
+        if len(current_user.housing_searches) >= current_app.config['CRAIGSLIST_MAX_USER_SEARCHES']:
             flash(f"{current_user.username} has exceeded maximum searches")
             return redirect(url_for('user.profile', username=current_user.username))
 
@@ -32,9 +32,6 @@ def create():
             created_at=dt.datetime.now(),
             site=form.site.data,
             owner=current_user)
-
-        if any((uhs.cl_site == hs.cl_site) and (uhs.cl_area == hs.cl_area) for uhs in current_user.housing_searches):
-            flash(f"{current_user.username} already has an active search for {hs.cl_site}/{hs.cl_area}")
 
         expires = hs.target_date + dt.timedelta(days=30)
         if (expires - dt.datetime.now()) > dt.timedelta(days=90):
@@ -49,7 +46,7 @@ def create():
     return render_template('search/new.html', form=form)
 
 
-@bp.route('/<identifier>/delete', methods=['GET', 'POST'])
+@bp.route('/<identifier>/delete', methods=['DELETE', 'POST'])
 @login_required
 def delete(identifier):
     hs = HousingSearch.query.get_or_404(identifier)

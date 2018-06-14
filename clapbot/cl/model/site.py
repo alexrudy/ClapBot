@@ -55,10 +55,11 @@ class Area(db.Model):
     @classmethod
     def _handle_kwargs(cls, kwargs):
         """Handle initialization kwargs"""
-        if not isinstance(kwargs.get('area'), cls):
+        if 'area' in kwargs and not isinstance(kwargs.get('area'), cls):
             kwargs['area'] = cls._lookup(kwargs.pop('area'), site=kwargs.pop('site', None))
-        if 'site' in kwargs:
-            raise ValueError("Can't pass site={site} with area={area}".format_map(kwargs))
+        if {'site', 'area'} <= kwargs.keys():
+            raise ValueError("Can't pass site={site} with area={area}".format(
+                site=kwargs.get('site', None), area=kwargs.get('area', None)))
         return kwargs
 
     @classmethod

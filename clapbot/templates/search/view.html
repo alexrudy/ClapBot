@@ -48,7 +48,7 @@
             <dl>
                 <dt>Controls</dt>
                 <dd>
-                    <form action="{{ url_for('search.delete', identifier=search.id) }}" method='POST'>
+                    <form action="{{ url_for('search.delete', identifier=search.id) }}" method='DELETE'>
                         <a href="{{ url_for('search.edit', identifier=search.id) }}" class='btn btn-primary' role="button">Edit</a>
                         <button type="submit  " class='btn btn-danger'>Delete</button>
                     </form>
@@ -56,7 +56,9 @@
                 <dt>Status</dt>
                 <dd>
                     <p>{{ listings.count() }} listings recorded.</p>
-                    <p>Last scraped {{ record.records }} records from {{ record.site }} / {{ record.area }} at {{ record.scraped_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <p>{% if record %}
+                        Last scraped {{ record.records }} records from {{ record.site }} / {{ record.area }} at {{ record.scraped_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% endif %}</p>
                 </dd>
             </dl>
         </div>

@@ -7,7 +7,6 @@ import requests
 
 from sqlalchemy import func
 from sqlalchemy import not_
-from sqlalchemy.sql.functions import current_date
 
 from flask import current_app as app
 
@@ -17,7 +16,7 @@ from celery.canvas import group
 from ..core import db, celery
 from .model.listing import Listing, ListingExpirationCheck
 from .model.image import Image
-from .model.scrape import Record, Status
+from .model.scrape import Record
 from . import sites as cl_sites
 
 __all__ = ['download_listing', 'download_image']
@@ -173,7 +172,7 @@ def scrape(id, filters=None, limit=None, force=False):
     return result.id
 
 
-def save_listing_to_file(listing, save=False):
+def save_listing_to_file(listing, save=False, force=False):
     """Save listing data as JSON to a file"""
     path = (listing.cache_path / '{}.json'.format(listing.cl_id))
     if save and ((not path.exists()) or force):
@@ -186,7 +185,7 @@ def save_listing_to_file(listing, save=False):
 def export_listing(listing_id, force=False):
     """Dump this listing to disk if needed."""
     listing = Listing.query.get(listing_id)
-    save_listing_to_file(listing, save=app.config['CRAIGSLIST_CACHE_ENABLE'])
+    save_listing_to_file(listing, save=app.config['CRAIGSLIST_CACHE_ENABLE'], force=force)
     return listing_id
 
 
