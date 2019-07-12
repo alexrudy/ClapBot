@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, DateField, TextAreaField, IntegerField, HiddenField, FormField
+from wtforms import StringField, SubmitField, DateField, TextAreaField, IntegerField, HiddenField, FormField, BooleanField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, NumberRange
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
@@ -43,3 +43,32 @@ class HousingSearchEditForm(FlaskForm):
     category = QuerySelectField('Category', validators=[DataRequired()], query_factory=enabled_categories)
 
     submit = SubmitField('Save')
+
+
+class BoundingBoxEditor(FlaskForm):
+    """Form for bulk-editing a bounding box."""
+
+    bboxes = TextAreaField(validators=[DataRequired()])
+
+    submit = SubmitField('Save')
+
+
+def _as_attr(name):
+    return name.replace(" ", "_").replace("-", "_")
+
+
+class SelectBoundingBoxForm(FlaskForm):
+
+    submit = SubmitField('Save')
+
+    @classmethod
+    def make(cls, bboxes):
+        """Make a series of checkboxes for bboxes."""
+
+        class Form(cls):
+            pass
+
+        for bbox in bboxes:
+            setattr(Form, _as_attr(bbox.name), BooleanField(label=bbox.name, render_kw={'data-bbox': bbox.id}))
+
+        return Form

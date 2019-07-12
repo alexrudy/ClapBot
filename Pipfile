@@ -37,6 +37,7 @@ mypy = "*"
 yapf = "*"
 pytest-socket = "*"
 tmuxp = "*"
+black = "==18.6b2"
 
 [requires]
 python_version = "3.6"

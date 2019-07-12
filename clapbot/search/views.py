@@ -1,4 +1,5 @@
 import datetime as dt
+import io
 
 from flask import Blueprint, render_template, current_app
 from flask import redirect, url_for, flash
@@ -10,7 +11,8 @@ from sqlalchemy import or_
 from ..core import db
 from ..cl.model import Listing, scrape
 from .model import HousingSearch
-from .forms import HousingSearchCreate, HousingSearchEditForm
+from .model.location import BoundingBox, export_bboxes, iter_bboxes
+from .forms import HousingSearchCreate, HousingSearchEditForm, BoundingBoxEditor, SelectBoundingBoxForm
 
 bp = Blueprint('search', __name__)
 
@@ -75,7 +77,7 @@ def edit(identifier):
     return render_template('search/edit.html', form=form, search=hs)
 
 
-@bp.route('/<identifier>')
+@bp.route('/<int:identifier>')
 @login_required
 def view(identifier):
     """View the results of a single search"""
@@ -101,3 +103,50 @@ def home():
     listings = Listing.query.filter(or_(*predicates)).order_by(Listing.created.desc())
 
     return render_template('search/home.html', listings=listings)
+
+
+@bp.route('/bbox/create', methods=['GET', 'POST'])
+@login_required
+def create_bbox():
+    """Create bboxes via CSV entry"""
+
+    form = BoundingBoxEditor()
+
+    if form.validate_on_submit():
+
+        stream = io.StringIO(form.bboxes.data)
+        for bbox in iter_bboxes(stream):
+            bbox.user = current_user
+            db.session.add(bbox)
+
+        db.session.commit()
+        return redirect(url_for('user.profile', username=current_user.username))
+
+    else:
+        if not form.bboxes.data:
+            bboxes = BoundingBox.query.filter(BoundingBox.user == current_user)
+            bboxes_csv = io.StringIO()
+            export_bboxes(bboxes_csv, bboxes)
+
+            form.bboxes.data = bboxes_csv.getvalue()
+
+    return render_template('search/bboxes.html', form=form)
+
+
+@bp.route('/<identifier>/bbox/', methods=['GET', 'POST'])
+@login_required
+def set_bbox(identifier):
+    """A view for setting the bboxes which belong to a search"""
+
+    hs = HousingSearch.query.get_or_404(identifier)
+
+    bboxes = BoundingBox.query.filter(BoundingBox.user == current_user).all()
+
+    form = SelectBoundingBoxForm.make(bboxes)
+
+    if form.validate_on_submit():
+
+        selected = []
+        for field in form.fields:
+            if field.type == "BooleanField" and field.data:
+                selected.append(BoundingBox.query.get_or_404(field.render_kw['data-bbox']))
