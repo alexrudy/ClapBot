@@ -24,6 +24,7 @@ flask-bootstrap = "*"
 flask-login = "*"
 flask-wtf = "*"
 wtforms = ">=2.2"
+email-validator = "*"
 
 [dev-packages]
 pytest = "*"
@@ -38,6 +39,7 @@ yapf = "*"
 pytest-socket = "*"
 tmuxp = "*"
 black = "==18.6b2"
+invoke = "*"
 
 [requires]
 python_version = "3.6"
